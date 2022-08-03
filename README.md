@@ -2,6 +2,14 @@
   <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
 </p>
 
+# Reusable Workflow Documentator
+
+Auto documentation for reusable workflow
+
+<details>
+
+<summary>template</summary>
+
 # Create a JavaScript Action using TypeScript
 
 Use this template to bootstrap the creation of a TypeScript action.:rocket:
@@ -20,17 +28,17 @@ Click the `Use this Template` and provide the new repo details for your action
 
 Install the dependencies  
 ```bash
-$ npm install
+$ pnpm install
 ```
 
 Build the typescript and package it for distribution
 ```bash
-$ npm run build && npm run package
+$ pnpm run build && pnpm run package
 ```
 
 Run the tests :heavy_check_mark:  
 ```bash
-$ npm test
+$ pnpm test
 
  PASS  ./index.test.js
   ✓ throws invalid number (3ms)
@@ -76,7 +84,7 @@ Actions are run from GitHub repos so we will checkin the packed dist folder.
 
 Then run [ncc](https://github.com/zeit/ncc) and push the results:
 ```bash
-$ npm run package
+$ pnpm run package
 $ git add dist
 $ git commit -a -m "prod dependencies"
 $ git push origin releases/v1
@@ -103,3 +111,5 @@ See the [actions tab](https://github.com/actions/typescript-action/actions) for 
 ## Usage:
 
 After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
+
+</details>

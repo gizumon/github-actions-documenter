@@ -1,0 +1,52 @@
+name: Reusable workflow example
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: true
+        type: string
+        default: john doe
+        description: description sample
+      string:
+        required: true
+        type: string
+      number:
+        required: true
+        type: number
+      boolean:
+        required: true
+        type: boolean
+    secrets:
+      token:
+        required: true
+    outputs:
+      output:
+        description: description sample
+        required: false
+      result:
+        description: this is a result
+        required: true
+
+jobs:
+  example_job1:
+    name: example job 1
+    runs-on: ubuntu-latest
+    outputs:
+      output: ${{ steps.sample_outputs.outputs.output1 }}
+      result: ${{ steps.sample_outputs.outputs.result1 }}
+
+    steps:
+      - name: sample inputs echo
+        uses: actions/echo@v1
+        with:
+          name: ${{ inputs.name }}
+          string: ${{ inputs.string }}
+          number: ${{ inputs.number }}
+          boolean: ${{ inputs.boolean }}
+
+      - name: sample outputs
+        id: sample_outputs
+        run: |
+          echo "#::set-output name=output1::sample-value1"
+          echo "#::set-output name=result1::sample-value2"
