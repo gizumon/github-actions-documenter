@@ -12,9 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-          npm install
+          npm install -g pnpm
       - run: |
-          npm run all
+          pnpm install
+      - run: |
+          pnpm run all
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
     steps:
