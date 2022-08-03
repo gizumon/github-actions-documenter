@@ -1,4 +1,4 @@
 const constants = {
-  workflowsDir: './.github/workflows/'
+  workflowsDir: './.github/workflows/',
 }
 export default constants

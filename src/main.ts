@@ -20,7 +20,7 @@ const runMain = async (): Promise<void> => {
 
     // read yml file
     const yamlObjs = readYAMLs().filter(filterOnWorkflowCall)
-    yamlObjs.forEach(yamlObj => debug(yamlObj))    
+    yamlObjs.forEach((yamlObj) => debug(yamlObj))
 
     core.setOutput('time', new Date().toTimeString())
   } catch (error) {
@@ -37,24 +37,28 @@ const debug = (msg: string | any): void => {
 }
 
 const getProps = (): Props => ({
-  milliseconds: core.getInput('milliseconds')
+  milliseconds: core.getInput('milliseconds'),
 })
 
 const readYAMLs = (): GitHubActionsYaml[] => {
-  return fs.readdirSync(constants.workflowsDir).map(fName => {
-    if (!fName.endsWith('.yml')) return undefined
-    debug('Found file: ' + fName)
-    try {
-      const fPath = path.join(constants.workflowsDir, fName)
-      const doc = yaml.load(fs.readFileSync(fPath, 'utf-8'))
-      return doc as GitHubActionsYaml
-    } catch {
-      debug('File is not a valid yml file: ' + fName)
-      return undefined
-    }
-  }).filter(fName => fName !== undefined) as GitHubActionsYaml[]
+  return fs
+    .readdirSync(constants.workflowsDir)
+    .map((fName) => {
+      if (!fName.endsWith('.yml')) return undefined
+      debug('Found file: ' + fName)
+      try {
+        const fPath = path.join(constants.workflowsDir, fName)
+        const doc = yaml.load(fs.readFileSync(fPath, 'utf-8'))
+        return doc as GitHubActionsYaml
+      } catch {
+        debug('File is not a valid yml file: ' + fName)
+        return undefined
+      }
+    })
+    .filter((fName) => fName !== undefined) as GitHubActionsYaml[]
 }
 
-const filterOnWorkflowCall = (obj: GitHubActionsYaml): boolean => Object.keys(obj?.on || {}).some(key => key === 'workflow_call')
+const filterOnWorkflowCall = (obj: GitHubActionsYaml): boolean =>
+  Object.keys(obj?.on || {}).some((key) => key === 'workflow_call')
 
 runMain()
