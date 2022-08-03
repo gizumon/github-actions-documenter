@@ -1,6 +1,11 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Reusable workflow documentator'
+description: 'Auto documentation for Github Reusable Workflows'
+author: 'tomoatsu.sekikawa'
+
+branding:
+  icon: 'book-open'  
+  color: 'green'
+
 inputs:
   milliseconds: # change this
     required: true

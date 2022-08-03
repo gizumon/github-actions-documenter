@@ -1,14 +1,26 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable prettier/prettier */
 import * as core from '@actions/core'
-import {wait} from './wait'
+import * as fs from 'fs'
+import constants from './constants'
+import * as path from 'path'
+import * as yaml from 'js-yaml'
+import { GitHubActionsYaml } from './types'
 
-async function run(): Promise<void> {
+interface Props {
+  milliseconds: string
+}
+
+const runMain = async (): Promise<void> => {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+    debug('Run reusable-workflow-documentator ...')
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    const props: Props = getProps()
+    debug(`Given properties: ${JSON.stringify(props)} ...`)
+
+    // read yml file
+    const yamlObjs = readYAMLs().filter(filterOnWorkflowCall)
+    yamlObjs.forEach(yamlObj => debug(yamlObj))    
 
     core.setOutput('time', new Date().toTimeString())
   } catch (error) {
@@ -18,4 +30,31 @@ async function run(): Promise<void> {
   }
 }
 
-run()
+// TODO: Fix this
+const debug = (msg: string | any): void => {
+  core.debug(msg)
+  // console.log(msg)
+}
+
+const getProps = (): Props => ({
+  milliseconds: core.getInput('milliseconds')
+})
+
+const readYAMLs = (): GitHubActionsYaml[] => {
+  return fs.readdirSync(constants.workflowsDir).map(fName => {
+    if (!fName.endsWith('.yml')) return undefined
+    debug('Found file: ' + fName)
+    try {
+      const fPath = path.join(constants.workflowsDir, fName)
+      const doc = yaml.load(fs.readFileSync(fPath, 'utf-8'))
+      return doc as GitHubActionsYaml
+    } catch {
+      debug('File is not a valid yml file: ' + fName)
+      return undefined
+    }
+  }).filter(fName => fName !== undefined) as GitHubActionsYaml[]
+}
+
+const filterOnWorkflowCall = (obj: GitHubActionsYaml): boolean => Object.keys(obj?.on || {}).some(key => key === 'workflow_call')
+
+runMain()

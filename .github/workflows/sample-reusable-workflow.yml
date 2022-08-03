@@ -18,24 +18,21 @@ on:
         required: true
         type: boolean
     secrets:
-      token:
+      secret:
+        description: 'some secret'
         required: true
     outputs:
       output:
         description: description sample
-        required: false
+        value: ${{ steps.sample_outputs.outputs.output1 }}
       result:
         description: this is a result
-        required: true
+        value: ${{ steps.sample_outputs.outputs.result1 }}
 
 jobs:
   example_job1:
     name: example job 1
     runs-on: ubuntu-latest
-    outputs:
-      output: ${{ steps.sample_outputs.outputs.output1 }}
-      result: ${{ steps.sample_outputs.outputs.result1 }}
-
     steps:
       - name: sample inputs echo
         uses: actions/echo@v1
