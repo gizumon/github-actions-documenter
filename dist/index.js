@@ -63,6 +63,7 @@ const fs = __importStar(__nccwpck_require__(747));
 const constants_1 = __importDefault(__nccwpck_require__(349));
 const path = __importStar(__nccwpck_require__(622));
 const yaml = __importStar(__nccwpck_require__(654));
+const markdown_1 = __nccwpck_require__(213);
 const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         debug('Run reusable-workflow-documentator ...');
@@ -70,8 +71,12 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
         debug(`Given properties: ${JSON.stringify(props)} ...`);
         // read yml file
         const yamlObjs = readYAMLs().filter(filterOnWorkflowCall);
-        yamlObjs.forEach((yamlObj) => debug(yamlObj));
-        core.setOutput('time', new Date().toTimeString());
+        const headerMd = (0, markdown_1.mdCommonHeader)();
+        const contentMds = yamlObjs.map(markdown_1.mdReusableWorkflow);
+        // TODO: Add agenda (Need name and filename map)
+        const result = `${headerMd}${markdown_1.newLine}${contentMds.join(markdown_1.newLine)}`;
+        debug(result);
+        core.setOutput('result', result);
     }
     catch (error) {
         if (error instanceof Error) {
@@ -81,8 +86,8 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 // TODO: Fix this
 const debug = (msg) => {
-    core.debug(msg);
-    // console.log(msg)
+    // core.debug(msg)
+    console.log(msg);
 };
 const getProps = () => ({
     milliseconds: core.getInput('milliseconds'),
@@ -108,6 +113,194 @@ const readYAMLs = () => {
 };
 const filterOnWorkflowCall = (obj) => Object.keys((obj === null || obj === void 0 ? void 0 : obj.on) || {}).some((key) => key === 'workflow_call');
 runMain();
+
+
+/***/ }),
+
+/***/ 213:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.mdUnknownKey = exports.onWorkflowCallSecrets = exports.onWorkflowCallOutputs = exports.onWorkflowCallInputs = exports.onWorkflowCall = exports.mdReusableWorkflow = exports.mdCommonHeader = exports.mdTableColumn = exports.mdTableRows = exports.mdTablePosition = exports.mdTable = exports.mdCell = exports.mdCodeBlock = exports.mdNote = exports.mdList = exports.mdH3 = exports.mdH2 = exports.mdH1 = exports.positionMap = exports.tbSeparator = exports.divider = exports.newLine = void 0;
+exports.newLine = '\n';
+exports.divider = '---';
+exports.tbSeparator = ' | ';
+exports.positionMap = {
+    left: ':---',
+    center: ':---:',
+    right: '---:'
+};
+const mdH1 = (text) => {
+    return `# ${text}${exports.newLine}`;
+};
+exports.mdH1 = mdH1;
+const mdH2 = (text) => {
+    return `## ${text}${exports.newLine}`;
+};
+exports.mdH2 = mdH2;
+const mdH3 = (text) => {
+    return `### ${text}${exports.newLine}`;
+};
+exports.mdH3 = mdH3;
+const mdList = (texts) => {
+    return texts.map((text) => `* ${text}`).join(exports.newLine);
+};
+exports.mdList = mdList;
+const mdNote = (text) => {
+    return `> ${text}${exports.newLine}`;
+};
+exports.mdNote = mdNote;
+const mdCodeBlock = (text) => {
+    return `\`\`\`${text}\`\`\``;
+};
+exports.mdCodeBlock = mdCodeBlock;
+const mdCell = (text) => {
+    return `| ${text} |`;
+};
+exports.mdCell = mdCell;
+const mdTable = ({ headers, rows, positions = ['center'] }) => {
+    const header = (0, exports.mdTableColumn)(headers);
+    const position = (0, exports.mdTablePosition)(positions);
+    const bodyRows = (0, exports.mdTableRows)(rows);
+    return `${header}${exports.newLine}${position}${exports.newLine}${bodyRows}${exports.newLine}`;
+};
+exports.mdTable = mdTable;
+const mdTablePosition = (positions) => {
+    const tbPositions = positions.map(p => exports.positionMap[p] || exports.positionMap.center);
+    return (0, exports.mdCell)(tbPositions.join(exports.tbSeparator));
+};
+exports.mdTablePosition = mdTablePosition;
+const mdTableRows = (rows) => {
+    return rows.map((row) => (0, exports.mdTableColumn)(row)).join(exports.newLine);
+};
+exports.mdTableRows = mdTableRows;
+const mdTableColumn = (row) => {
+    return (0, exports.mdCell)(row.join(exports.tbSeparator));
+};
+exports.mdTableColumn = mdTableColumn;
+// =====================================
+// Reusable workflows markdown generator
+// =====================================
+const mdCommonHeader = () => {
+    const link = 'https://github.com/gizumon/reusable-workflow-documentator';
+    const note = (0, exports.mdNote)(`🚀 Generated automatically by [reusable-workflow-documentator](${link}) 🚀${exports.newLine}`);
+    const title = (0, exports.mdH1)('🔰 Reusable Workflows Usage 🔰');
+    return `${exports.divider}${exports.newLine}${note}${exports.newLine}${title}${exports.newLine}`;
+};
+exports.mdCommonHeader = mdCommonHeader;
+const mdReusableWorkflow = (obj, index) => {
+    return Object.keys(obj)
+        .map(key => {
+        switch (key) {
+            case 'name':
+                return (0, exports.mdH2)(`${index + 1}: ${obj[key]}`);
+            case 'on':
+                return (0, exports.onWorkflowCall)(obj[key]);
+            default:
+                return (0, exports.mdUnknownKey)(key);
+        }
+    })
+        .join(exports.newLine);
+};
+exports.mdReusableWorkflow = mdReusableWorkflow;
+const onWorkflowCall = ({ workflow_call: obj }) => {
+    return Object.keys(obj)
+        .map(key => {
+        switch (key) {
+            case 'inputs':
+                return (0, exports.onWorkflowCallInputs)(obj[key]);
+            case 'outputs':
+                return (0, exports.onWorkflowCallOutputs)(obj[key]);
+            case 'secrets':
+                return (0, exports.onWorkflowCallSecrets)(obj[key]);
+            default:
+                return (0, exports.mdUnknownKey)(key);
+        }
+    })
+        .join(exports.newLine);
+};
+exports.onWorkflowCall = onWorkflowCall;
+const onWorkflowCallInputs = (obj) => {
+    if (!obj)
+        return '';
+    const headers = ['#', 'Required', 'Type', 'Name', 'Default', 'Description'];
+    const positions = [
+        'left',
+        'center',
+        'center',
+        'left',
+        'left',
+        'left'
+    ];
+    const rows = Object.keys(obj).map((key, i) => {
+        return [
+            String(i + 1),
+            obj[key].required ? '○' : '×',
+            obj[key].type,
+            key,
+            obj[key].default || '',
+            obj[key].description || '' // description
+        ];
+    });
+    const tableTitle = (0, exports.mdH3)('Inputs');
+    const table = (0, exports.mdTable)({
+        headers,
+        rows,
+        positions
+    });
+    return `${tableTitle}${exports.newLine}${table}${exports.newLine}`;
+};
+exports.onWorkflowCallInputs = onWorkflowCallInputs;
+const onWorkflowCallOutputs = (obj) => {
+    if (!obj)
+        return '';
+    const headers = ['#', 'Name', 'Description'];
+    const positions = ['left', 'left', 'left'];
+    const rows = Object.keys(obj).map((key, i) => {
+        return [
+            String(i + 1),
+            key,
+            obj[key].description || '' // description
+        ];
+    });
+    const tableTitle = (0, exports.mdH3)('Outputs');
+    const table = (0, exports.mdTable)({
+        headers,
+        rows,
+        positions
+    });
+    return `${tableTitle}${exports.newLine}${table}${exports.newLine}`;
+};
+exports.onWorkflowCallOutputs = onWorkflowCallOutputs;
+const onWorkflowCallSecrets = (obj) => {
+    if (!obj)
+        return '';
+    const headers = ['#', 'Required', 'Name', 'Description'];
+    const positions = ['left', 'center', 'left', 'left'];
+    const rows = Object.keys(obj).map((key, i) => {
+        return [
+            String(i + 1),
+            obj[key].required ? '○' : '×',
+            key,
+            obj[key].description || '' // description
+        ];
+    });
+    const tableTitle = (0, exports.mdH3)('Secrets');
+    const table = (0, exports.mdTable)({
+        headers,
+        rows,
+        positions
+    });
+    return `${tableTitle}${exports.newLine}${table}${exports.newLine}`;
+};
+exports.onWorkflowCallSecrets = onWorkflowCallSecrets;
+const mdUnknownKey = (obj) => {
+    console.log(obj);
+    return '';
+};
+exports.mdUnknownKey = mdUnknownKey;
 
 
 /***/ }),

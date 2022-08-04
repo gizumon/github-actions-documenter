@@ -1,22 +1,41 @@
-name: Reusable workflow example
+# @example
+#   name: Sample Reusable Workflow
+#   on:
+#     push:
+#       branches:
+#         - main
+#         - 'releases/*'
+#   jobs:
+#     build:
+#       runs-on: ubuntu-latest
+#       uses: gizumon/reusable-workflow-documentator/.github/workflows/sample-reusable-workflow.yml@main
+#       with:
+#         required: sample
+#         string: string value
+
+name: Example workflow
 
 on:
   workflow_call:
     inputs:
-      name:
+      required:
         required: true
         type: string
-        default: john doe
+        default: default value
         description: description sample
       string:
-        required: true
+        required: false
         type: string
+        default: >-
+          [go, js, php]
+        description: string value test
       number:
         required: true
         type: number
       boolean:
         required: true
         type: boolean
+
     secrets:
       secret:
         description: 'some secret'

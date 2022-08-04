@@ -21,6 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: ./
+      - name: Run action.yml
+        uses: ./
+        id: test
         with:
           milliseconds: 1000
+      - name: Outputs
+        run:
+          echo "output = ${{ steps.test.outputs.result }}"

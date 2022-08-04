@@ -6,6 +6,7 @@ import constants from './constants'
 import * as path from 'path'
 import * as yaml from 'js-yaml'
 import { GitHubActionsYaml } from './types'
+import { mdCommonHeader, mdReusableWorkflow, newLine } from './markdown'
 
 interface Props {
   milliseconds: string
@@ -20,9 +21,13 @@ const runMain = async (): Promise<void> => {
 
     // read yml file
     const yamlObjs = readYAMLs().filter(filterOnWorkflowCall)
-    yamlObjs.forEach((yamlObj) => debug(yamlObj))
+    const headerMd = mdCommonHeader()
+    const contentMds = yamlObjs.map(mdReusableWorkflow)
 
-    core.setOutput('time', new Date().toTimeString())
+    // TODO: Add agenda (Need name and filename map)
+    const result = `${headerMd}${newLine}${contentMds.join(newLine)}`
+    debug(result)
+    core.setOutput('result', result)
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message)
@@ -32,8 +37,8 @@ const runMain = async (): Promise<void> => {
 
 // TODO: Fix this
 const debug = (msg: string | any): void => {
-  core.debug(msg)
-  // console.log(msg)
+  // core.debug(msg)
+  console.log(msg)
 }
 
 const getProps = (): Props => ({

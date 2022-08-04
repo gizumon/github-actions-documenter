@@ -49,7 +49,8 @@
       "array-foreach": "off",
       "prefer-template": "off",
       "github/array-foreach": "off",
-      "eslint-comments/no-unused-disable": "off"
+      "eslint-comments/no-unused-disable": "off",
+      "prettier/prettier": "warn"
     },
     "env": {
       "node": true,
