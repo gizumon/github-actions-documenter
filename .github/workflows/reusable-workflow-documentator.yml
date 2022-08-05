@@ -27,10 +27,6 @@ on:
         type: boolean
         default: false
         description: overwrite existing file
-    outputs:
-      document:
-        description: Reusable workflow markdown document
-        value: ${{ steps.documentator.outputs.document }}
 
 jobs:
   example_job1:
