@@ -5,9 +5,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
-        with:
-          filepath: README.md
-          overwrite: false
+    uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
+    with:
+      filepath: README.md
+      overwrite: false
