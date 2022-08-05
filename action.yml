@@ -6,11 +6,10 @@ branding:
   icon: 'book-open'  
   color: 'green'
 
-inputs:
-  milliseconds: # change this
-    required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+outputs:
+  document:
+    description: 'Reusable workflow markdown document'
+
 runs:
   using: 'node16'
   main: 'dist/index.js'

@@ -1,4 +1,4 @@
-# @example
+# @example=### 1: simple workflow sample
 #   name: Sample Reusable Workflow
 #   on:
 #     push:
@@ -12,6 +12,27 @@
 #       with:
 #         required: sample
 #         string: string value
+# @example=### 2: complex workflow sample
+#   name: Sample Reusable Workflow
+#   on:
+#     push:
+#       branches:
+#         - main
+#         - 'releases/*'
+#   jobs:
+#     build:
+#       runs-on: ubuntu-latest
+#       uses: gizumon/reusable-workflow-documentator/.github/workflows/sample-reusable-workflow.yml@main
+#       with:
+#         required: sample
+#         string: string value
+
+# @note=Sample note
+# This is a sample workflow.
+# You can use this workflow as a template for your own reusable workflow.
+# # H1
+# ## H2
+# * aaa
 
 name: Example workflow
 

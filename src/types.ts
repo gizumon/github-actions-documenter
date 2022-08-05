@@ -18,6 +18,10 @@ type AnyValue = string | string[] | AnyObjValue | AnyObjValue[]
 // GitHub Actions yaml interface
 // [root]
 // ================================
+export interface GitHubActionsYamlFileMap {
+  [key: string]: GitHubActionsYaml
+}
+
 export interface GitHubActionsYaml {
   name: string
   on: ActionsOn
@@ -103,6 +107,10 @@ interface WorkflowCallSecrets {
   }
 }
 // --------------------------------
+
+export interface ReuseableWorkflowsYamlFileMap {
+  [key: string]: ReuseableWorkflowsYaml
+}
 
 export interface ReuseableWorkflowsYaml {
   name: string

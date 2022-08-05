@@ -1,31 +1,33 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable prettier/prettier */
 import * as core from '@actions/core'
-import * as fs from 'fs'
-import constants from './constants'
-import * as path from 'path'
-import * as yaml from 'js-yaml'
-import { GitHubActionsYaml } from './types'
-import { mdCommonHeader, mdReusableWorkflow, newLine } from './markdown'
+import { mdCommonHeader, mdReusableWorkflows, newLine } from './markdown'
+import { readYamls } from './fs'
+import { debug } from './helpers'
 
-interface Props {
-  milliseconds: string
-}
+// interface Props {
+
+// }
 
 const runMain = async (): Promise<void> => {
   try {
     debug('Run reusable-workflow-documentator ...')
 
-    const props: Props = getProps()
-    debug(`Given properties: ${JSON.stringify(props)} ...`)
+    // const props: Props = getProps()
+    // debug(`Given properties: ${JSON.stringify(props)} ...`)
 
     // read yml file
-    const yamlObjs = readYAMLs().filter(filterOnWorkflowCall)
+    const readYamlResult = readYamls()
+    if (Object.keys(readYamlResult.workflowCallYamlMap).length === 0) {
+      core.debug('No workflow call yaml file found')
+      core.setOutput('result', '')
+      return
+    }
     const headerMd = mdCommonHeader()
-    const contentMds = yamlObjs.map(mdReusableWorkflow)
+    const contentMd = mdReusableWorkflows(readYamlResult)
 
     // TODO: Add agenda (Need name and filename map)
-    const result = `${headerMd}${newLine}${contentMds.join(newLine)}`
+    const result = `${headerMd}${newLine}${contentMd}`
     debug(result)
     core.setOutput('result', result)
   } catch (error) {
@@ -35,35 +37,6 @@ const runMain = async (): Promise<void> => {
   }
 }
 
-// TODO: Fix this
-const debug = (msg: string | any): void => {
-  // core.debug(msg)
-  console.log(msg)
-}
-
-const getProps = (): Props => ({
-  milliseconds: core.getInput('milliseconds'),
-})
-
-const readYAMLs = (): GitHubActionsYaml[] => {
-  return fs
-    .readdirSync(constants.workflowsDir)
-    .map((fName) => {
-      if (!fName.endsWith('.yml')) return undefined
-      debug('Found file: ' + fName)
-      try {
-        const fPath = path.join(constants.workflowsDir, fName)
-        const doc = yaml.load(fs.readFileSync(fPath, 'utf-8'))
-        return doc as GitHubActionsYaml
-      } catch {
-        debug('File is not a valid yml file: ' + fName)
-        return undefined
-      }
-    })
-    .filter((fName) => fName !== undefined) as GitHubActionsYaml[]
-}
-
-const filterOnWorkflowCall = (obj: GitHubActionsYaml): boolean =>
-  Object.keys(obj?.on || {}).some((key) => key === 'workflow_call')
+// const getProps = (): Props => ({})
 
 runMain()

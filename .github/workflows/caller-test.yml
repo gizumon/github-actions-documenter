@@ -1,0 +1,13 @@
+name: "Caller Test"
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/workflows/reusable-workflow-documentator.yml@main
+        with:
+          filepath: README.md
+          overwrite: false

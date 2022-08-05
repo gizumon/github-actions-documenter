@@ -1,0 +1,72 @@
+# @example=### 1: simple workflow sample
+#   name: Sample Reusable Workflow
+#   on:
+#     push:
+#       branches:
+#         - main
+#         - 'releases/*'
+#   jobs:
+#     build:
+#       runs-on: ubuntu-latest
+#       uses: gizumon/reusable-workflow-documentator/.github/workflows/sample-reusable-workflow.yml@main
+#       with:
+#         required: sample
+#         string: string value
+
+name: Reusable Workflow Documentator
+on:
+  workflow_call:
+    inputs:
+      filepath:
+        required: true
+        type: string
+        default: README.md
+        description: description sample
+      overwrite:
+        required: true
+        type: boolean
+        default: false
+        description: overwrite existing file
+    outputs:
+      document:
+        description: Reusable workflow markdown document
+        value: ${{ steps.documentator.outputs.document }}
+
+jobs:
+  example_job1:
+    name: example job 1
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Reusable Workflow Documentator Action
+        id: documentator
+        uses: ./
+
+      - name: Add a new file
+        id: changes
+        run:
+          if [ ${{ inputs.overwrite }} ]; then
+            echo "${{ steps.documentator.outputs.document }}" > ${{ inputs.filepath }}
+          else
+            echo "${{ steps.documentator.outputs.document }}" >> ${{ inputs.filepath }}
+          fi
+          git add -N .
+          echo "::set-output name=count::$(git diff --name-only | wc -l)"
+
+      - name: Update document
+        if: ${{ steps.changes.outputs.count }} > 0
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "Commit by Reusable workflow documentator"
+          git push
+
+      - name: Create New Pull Request If Needed
+        if: steps.documentator.outputs.document != ''
+        uses: peter-evans/create-pull-request@v3
+        with:
+          title: Reusable Workflow Usage
+          branch-suffix: timestamp
+          commit-message: Commit by Reusable workflow documentator
+          body: ${{ steps.documentator.outputs.document }}
