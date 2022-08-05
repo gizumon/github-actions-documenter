@@ -41,11 +41,12 @@ jobs:
       - name: Add a new file
         id: changes
         run:
-          if [ ${{ inputs.overwrite }} ]; then
-            echo "${{ steps.documentator.outputs.document }}" > ${{ inputs.filepath }}
-          else
-            echo "${{ steps.documentator.outputs.document }}" >> ${{ inputs.filepath }}
-          fi
+          # if [ ${{ inputs.overwrite }} ]; then
+          #   echo "${{ steps.documentator.outputs.document }}" > ${{ inputs.filepath }}
+          # else
+          #   echo "${{ steps.documentator.outputs.document }}" >> ${{ inputs.filepath }}
+          # fi
+          echo "${{ steps.documentator.outputs.document }}" >> ${{ inputs.filepath }}
           git add -N .
           echo "::set-output name=count::$(git diff --name-only | wc -l)"
 
