@@ -40,7 +40,7 @@ jobs:
 
       - name: Add a new file
         id: changes
-        run:
+        run: |
           # if [ ${{ inputs.overwrite }} ]; then
           #   echo "${{ steps.documentator.outputs.document }}" > ${{ inputs.filepath }}
           # else
@@ -55,8 +55,7 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add .
-          git commit -m "Commit by Reusable workflow documentator"
+          # git commit -m "Commit by Reusable workflow documentator"
 
       - name: Create New Pull Request If Needed
         if: steps.documentator.outputs.document != ''
