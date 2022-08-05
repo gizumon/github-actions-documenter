@@ -29,7 +29,7 @@ const runMain = async (): Promise<void> => {
     // TODO: Add agenda (Need name and filename map)
     const result = `${headerMd}${newLine}${contentMd}`
     debug(result)
-    core.setOutput('result', result)
+    core.setOutput('document', result)
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message)
