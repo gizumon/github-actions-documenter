@@ -1,17 +1,26 @@
-# @example=### 1: simple workflow sample
-#   name: Sample Reusable Workflow
-#   on:
-#     push:
-#       branches:
-#         - main
-#         - 'releases/*'
-#   jobs:
-#     build:
-#       runs-on: ubuntu-latest
-#       uses: gizumon/reusable-workflow-documentator/.github/workflows/sample-reusable-workflow.yml@main
-#       with:
-#         required: sample
-#         string: string value
+# @example=### Simple Reusable workflow Call example 1
+# name: "Simple example"
+# on:
+#   push:
+#     branches: [ main ]
+# jobs:
+#   test:
+#     uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
+
+# @example=### Reusable workflow Call example 2
+# name: "Example"
+# on:
+#   push:
+#     branches: [ main ]
+# jobs:
+#   test:
+#     uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
+#     with:
+#       filepath: .github/docs/reusable-workflow-doc.md
+#       overwrite: false
+#       make-pull-request: true
+#       github-base-url: "https://some-enterprise.github.com/api/v3"
+
 
 name: Reusable Workflow Documentator
 on:
