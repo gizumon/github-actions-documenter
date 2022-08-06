@@ -1,5 +1,5 @@
 import { ReadYamlResult, Annotations, Annotation } from './fs'
-import { spaceToDash, ToStringSafe } from './helpers'
+import { toAnchorLink, ToStringSafe } from './helpers'
 import { ReuseableWorkflowsYaml, ReuseableWorkflowsYamlFileMap } from './types'
 
 export const newLine = '\n'
@@ -86,7 +86,7 @@ export const mdAgenda = (yamlMap: ReuseableWorkflowsYamlFileMap): string => {
   const agendaItem = Object.keys(yamlMap).map((key, i) => {
     return `${mdLink(
       yamlMap[key].name,
-      spaceToDash(`#${i + 1}: ${yamlMap[key].name}`)
+      toAnchorLink(`#${i + 1}: ${yamlMap[key].name}`)
     )} ( ${mdLink('📄', dir + key)} )`
   })
   return mdList(agendaItem)

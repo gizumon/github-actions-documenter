@@ -10,10 +10,6 @@ export const log = (msg: string | any): void => {
   core.info(msg)
 }
 
-export const spaceToDash = (str: string): string => {
-  return str.replace(/ /g, '-')
-}
-
 export const ToStringSafe = (str: unknown): string => {
   switch (typeof str) {
     case 'undefined':
@@ -30,3 +26,6 @@ export const ToStringSafe = (str: unknown): string => {
       return String(str)
   }
 }
+
+export const toAnchorLink = (str: string): string =>
+  encodeURIComponent(str.trim().toLocaleLowerCase().replace(/\s/g, '-'))

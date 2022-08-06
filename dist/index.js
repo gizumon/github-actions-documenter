@@ -180,7 +180,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ToStringSafe = exports.spaceToDash = exports.log = void 0;
+exports.toAnchorLink = exports.ToStringSafe = exports.log = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const core = __importStar(__nccwpck_require__(6914));
 // const isDebug = core.getInput('debug') === 'true'
@@ -191,10 +191,6 @@ const log = (msg) => {
     core.info(msg);
 };
 exports.log = log;
-const spaceToDash = (str) => {
-    return str.replace(/ /g, '-');
-};
-exports.spaceToDash = spaceToDash;
 const ToStringSafe = (str) => {
     switch (typeof str) {
         case 'undefined':
@@ -212,6 +208,8 @@ const ToStringSafe = (str) => {
     }
 };
 exports.ToStringSafe = ToStringSafe;
+const toAnchorLink = (str) => encodeURIComponent(str.trim().toLocaleLowerCase().replace(/\s/g, '-'));
+exports.toAnchorLink = toAnchorLink;
 
 
 /***/ }),
@@ -412,7 +410,7 @@ exports.mdAnnotationNote = mdAnnotationNote;
 const mdAgenda = (yamlMap) => {
     const dir = './.github/workflows/';
     const agendaItem = Object.keys(yamlMap).map((key, i) => {
-        return `${(0, exports.mdLink)(yamlMap[key].name, (0, helpers_1.spaceToDash)(`#${i + 1}: ${yamlMap[key].name}`))} ( ${(0, exports.mdLink)('📄', dir + key)} )`;
+        return `${(0, exports.mdLink)(yamlMap[key].name, (0, helpers_1.toAnchorLink)(`#${i + 1}: ${yamlMap[key].name}`))} ( ${(0, exports.mdLink)('📄', dir + key)} )`;
     });
     return (0, exports.mdList)(agendaItem);
 };
