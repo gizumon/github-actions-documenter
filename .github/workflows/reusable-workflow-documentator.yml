@@ -6,6 +6,8 @@
 # jobs:
 #   test:
 #     uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
+#     with:
+#       filepath: .github/docs/reusable-workflow-doc.md
 
 # @example=### Reusable workflow Call example 2
 # name: "Example"
@@ -26,7 +28,7 @@ on:
   workflow_call:
     inputs:
       filepath:
-        required: false
+        required: true
         type: string
         default: README.md
         description: "Filepath to write the reusable workflow documentation (default: README.md)"

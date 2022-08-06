@@ -180,7 +180,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.spaceToDash = exports.log = void 0;
+exports.ToStringSafe = exports.spaceToDash = exports.log = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const core = __importStar(__nccwpck_require__(6914));
 // const isDebug = core.getInput('debug') === 'true'
@@ -195,6 +195,23 @@ const spaceToDash = (str) => {
     return str.replace(/ /g, '-');
 };
 exports.spaceToDash = spaceToDash;
+const ToStringSafe = (str) => {
+    switch (typeof str) {
+        case 'undefined':
+            return '';
+        case 'string':
+            return str;
+        case 'number':
+            return str.toString();
+        case 'boolean':
+            return str.toString();
+        case 'object':
+            return JSON.stringify(str);
+        default:
+            return String(str);
+    }
+};
+exports.ToStringSafe = ToStringSafe;
 
 
 /***/ }),
@@ -274,7 +291,9 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const headBranch = context.ref.replace('refs/heads/', '');
-            const baseBranch = context.payload.pull_request ? context.payload.pull_request.base.ref : 'main';
+            const baseBranch = context.payload.pull_request
+                ? context.payload.pull_request.base.ref
+                : 'main';
             try {
                 const pullRequest = yield octokit.rest.pulls.create({
                     owner,
@@ -318,7 +337,7 @@ runMain();
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.mdUnknownKey = exports.onWorkflowCallSecrets = exports.onWorkflowCallOutputs = exports.onWorkflowCallInputs = exports.onWorkflowCall = exports.mdReusableWorkflow = exports.mdReusableWorkflows = exports.mdAnnotationNote = exports.mdAnnotationExample = exports.mdCommonHeader = exports.mdTableColumn = exports.mdTableRows = exports.mdTablePosition = exports.mdTable = exports.mdRaw = exports.mdCell = exports.mdCodeBlock = exports.mdNote = exports.mdList = exports.mdLink = exports.mdBold = exports.mdH3 = exports.mdH2 = exports.mdH1 = exports.positionMap = exports.tbSeparator = exports.divider = exports.newLine = void 0;
+exports.mdUnknownKey = exports.onWorkflowCallSecrets = exports.onWorkflowCallOutputs = exports.onWorkflowCallInputs = exports.onWorkflowCall = exports.mdReusableWorkflow = exports.mdReusableWorkflows = exports.mdAgenda = exports.mdAnnotationNote = exports.mdAnnotationExample = exports.mdCommonHeader = exports.mdTableColumn = exports.mdTableRows = exports.mdTablePosition = exports.mdTable = exports.mdLink = exports.mdCell = exports.mdBold = exports.mdCodeBlock = exports.mdList = exports.mdNote = exports.mdH3 = exports.mdH2 = exports.mdH1 = exports.mdRaw = exports.positionMap = exports.tbSeparator = exports.divider = exports.newLine = void 0;
 const helpers_1 = __nccwpck_require__(6682);
 exports.newLine = '\n';
 exports.divider = '---';
@@ -328,26 +347,26 @@ exports.positionMap = {
     center: ':---:',
     right: '---:',
 };
+const mdRaw = (text) => `${text}${exports.newLine}`;
+exports.mdRaw = mdRaw;
 const mdH1 = (text) => `# ${text}${exports.newLine}`;
 exports.mdH1 = mdH1;
 const mdH2 = (text) => `## ${text}${exports.newLine}`;
 exports.mdH2 = mdH2;
 const mdH3 = (text) => `### ${text}${exports.newLine}`;
 exports.mdH3 = mdH3;
-const mdBold = (text) => `__${text}__${exports.newLine}`;
-exports.mdBold = mdBold;
-const mdLink = (text, url) => `[${text}](${url})`;
-exports.mdLink = mdLink;
-const mdList = (texts) => texts.map((text) => `* ${text}`).join(exports.newLine);
-exports.mdList = mdList;
 const mdNote = (text) => `> ${text}${exports.newLine}`;
 exports.mdNote = mdNote;
+const mdList = (texts) => texts.map((text) => `* ${text}`).join(exports.newLine);
+exports.mdList = mdList;
 const mdCodeBlock = (text) => `\`\`\`${exports.newLine}${text}${exports.newLine}\`\`\`${exports.newLine}`;
 exports.mdCodeBlock = mdCodeBlock;
+const mdBold = (text) => `__${text}__`;
+exports.mdBold = mdBold;
 const mdCell = (text) => `| ${text} |`;
 exports.mdCell = mdCell;
-const mdRaw = (text) => `${text}${exports.newLine}`;
-exports.mdRaw = mdRaw;
+const mdLink = (text, url) => `[${text}](${url})`;
+exports.mdLink = mdLink;
 const mdTable = ({ headers, rows, positions = ['center'], }) => {
     const header = (0, exports.mdTableColumn)(headers);
     const position = (0, exports.mdTablePosition)(positions);
@@ -379,39 +398,43 @@ const mdCommonHeader = () => {
 };
 exports.mdCommonHeader = mdCommonHeader;
 const mdAnnotationExample = (annot) => {
-    const title = annot.arg ? (0, exports.mdRaw)(annot.arg) : (0, exports.mdBold)('Example:');
+    const title = annot.arg ? (0, exports.mdRaw)(annot.arg) : (0, exports.mdBold)(`Example:${exports.newLine}`);
     const example = (0, exports.mdCodeBlock)(annot.block.join(exports.newLine));
     return `${title}${exports.newLine}${example}`;
 };
 exports.mdAnnotationExample = mdAnnotationExample;
 const mdAnnotationNote = (annot) => {
-    const title = annot.arg ? (0, exports.mdRaw)(annot.arg) : (0, exports.mdBold)('Note:');
+    const title = annot.arg ? (0, exports.mdRaw)(annot.arg) : (0, exports.mdBold)(`Note:${exports.newLine}`);
     const note = annot.block.join(exports.newLine);
     return `${title}${exports.newLine}${note}${exports.newLine}`;
 };
 exports.mdAnnotationNote = mdAnnotationNote;
-const mdReusableWorkflows = ({ workflowCallYamlMap: yamlMap, annotationMap, }) => {
+const mdAgenda = (yamlMap) => {
     const dir = './.github/workflows/';
-    const names = Object.keys(yamlMap).map((key, i) => {
+    const agendaItem = Object.keys(yamlMap).map((key, i) => {
         return `${(0, exports.mdLink)(yamlMap[key].name, (0, helpers_1.spaceToDash)(`#${i + 1}: ${yamlMap[key].name}`))} ( ${(0, exports.mdLink)('📄', dir + key)} )`;
     });
-    const mdAgenda = (0, exports.mdList)(names);
-    const mdWfs = Object.keys(yamlMap)
+    return (0, exports.mdList)(agendaItem);
+};
+exports.mdAgenda = mdAgenda;
+const mdReusableWorkflows = ({ workflowCallYamlMap: yamlMap, annotationMap, }) => {
+    const agendaDoc = (0, exports.mdAgenda)(yamlMap);
+    const wfsDoc = Object.keys(yamlMap)
         .map((key, i) => (0, exports.mdReusableWorkflow)(i + 1, yamlMap[key], annotationMap[key]))
         .join(exports.newLine);
-    return `${mdAgenda}${exports.newLine}${exports.newLine}${mdWfs}`;
+    return `${agendaDoc}${exports.newLine}${exports.newLine}${wfsDoc}`;
 };
 exports.mdReusableWorkflows = mdReusableWorkflows;
 const mdReusableWorkflow = (num = 1, obj, annotationObj = { example: [], note: [] }) => {
-    const mdExamples = annotationObj.example
+    const examplesDoc = annotationObj.example
         .map(exports.mdAnnotationExample)
         .join(exports.newLine);
-    const mdNotes = annotationObj.note.map(exports.mdAnnotationNote).join(exports.newLine);
-    const mdContent = Object.keys(obj)
+    const notesDoc = annotationObj.note.map(exports.mdAnnotationNote).join(exports.newLine);
+    const contentDoc = Object.keys(obj)
         .map((key) => {
         switch (key) {
             case 'name':
-                return (0, exports.mdH2)(`${num}: ${obj[key]}`) + mdExamples;
+                return (0, exports.mdH2)(`${num}: ${obj[key]}`) + examplesDoc;
             case 'on':
                 return (0, exports.onWorkflowCall)(obj[key]);
             default:
@@ -419,7 +442,7 @@ const mdReusableWorkflow = (num = 1, obj, annotationObj = { example: [], note: [
         }
     })
         .join(exports.newLine);
-    return `${mdContent}${mdNotes}`;
+    return `${contentDoc}${notesDoc}`;
 };
 exports.mdReusableWorkflow = mdReusableWorkflow;
 const onWorkflowCall = ({ workflow_call: obj, }) => {
@@ -455,19 +478,19 @@ const onWorkflowCallInputs = (obj) => {
         return [
             String(i + 1),
             obj[key].required ? '✅' : '',
-            obj[key].type,
-            key,
-            obj[key].default || '',
-            obj[key].description || '', // description
+            (0, helpers_1.ToStringSafe)(obj[key].type),
+            (0, helpers_1.ToStringSafe)(key),
+            (0, helpers_1.ToStringSafe)(obj[key].default),
+            (0, helpers_1.ToStringSafe)(obj[key].description), // description
         ];
     });
-    const tableTitle = (0, exports.mdH3)('Inputs');
-    const table = (0, exports.mdTable)({
+    const tableTitleDoc = (0, exports.mdH3)('Inputs');
+    const tableDoc = (0, exports.mdTable)({
         headers,
         rows,
         positions,
     });
-    return `${tableTitle}${exports.newLine}${table}${exports.newLine}`;
+    return `${tableTitleDoc}${exports.newLine}${tableDoc}${exports.newLine}`;
 };
 exports.onWorkflowCallInputs = onWorkflowCallInputs;
 const onWorkflowCallOutputs = (obj) => {
@@ -478,17 +501,17 @@ const onWorkflowCallOutputs = (obj) => {
     const rows = Object.keys(obj).map((key, i) => {
         return [
             String(i + 1),
-            key,
-            obj[key].description || '', // description
+            (0, helpers_1.ToStringSafe)(key),
+            (0, helpers_1.ToStringSafe)(obj[key].description), // description
         ];
     });
-    const tableTitle = (0, exports.mdH3)('Outputs');
-    const table = (0, exports.mdTable)({
+    const tableTitleDoc = (0, exports.mdH3)('Outputs');
+    const tableDoc = (0, exports.mdTable)({
         headers,
         rows,
         positions,
     });
-    return `${tableTitle}${exports.newLine}${table}${exports.newLine}`;
+    return `${tableTitleDoc}${exports.newLine}${tableDoc}${exports.newLine}`;
 };
 exports.onWorkflowCallOutputs = onWorkflowCallOutputs;
 const onWorkflowCallSecrets = (obj) => {
@@ -500,17 +523,17 @@ const onWorkflowCallSecrets = (obj) => {
         return [
             String(i + 1),
             obj[key].required ? '○' : '×',
-            key,
-            obj[key].description || '', // description
+            (0, helpers_1.ToStringSafe)(key),
+            (0, helpers_1.ToStringSafe)(obj[key].description), // description
         ];
     });
-    const tableTitle = (0, exports.mdH3)('Secrets');
-    const table = (0, exports.mdTable)({
+    const tableTitleDoc = (0, exports.mdH3)('Secrets');
+    const tableDoc = (0, exports.mdTable)({
         headers,
         rows,
         positions,
     });
-    return `${tableTitle}${exports.newLine}${table}${exports.newLine}`;
+    return `${tableTitleDoc}${exports.newLine}${tableDoc}${exports.newLine}`;
 };
 exports.onWorkflowCallSecrets = onWorkflowCallSecrets;
 const mdUnknownKey = (obj) => {

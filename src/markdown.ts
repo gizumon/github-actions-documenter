@@ -1,6 +1,6 @@
 import { ReadYamlResult, Annotations, Annotation } from './fs'
-import { spaceToDash } from './helpers'
-import { ReuseableWorkflowsYaml } from './types'
+import { spaceToDash, ToStringSafe } from './helpers'
+import { ReuseableWorkflowsYaml, ReuseableWorkflowsYamlFileMap } from './types'
 
 export const newLine = '\n'
 export const divider = '---'
@@ -11,18 +11,19 @@ export const positionMap = {
   right: '---:',
 }
 
+export const mdRaw = (text: string): string => `${text}${newLine}`
 export const mdH1 = (text: string): string => `# ${text}${newLine}`
 export const mdH2 = (text: string): string => `## ${text}${newLine}`
 export const mdH3 = (text: string): string => `### ${text}${newLine}`
-export const mdBold = (text: string): string => `__${text}__${newLine}`
-export const mdLink = (text: string, url: string): string => `[${text}](${url})`
+export const mdNote = (text: string): string => `> ${text}${newLine}`
 export const mdList = (texts: string[]): string =>
   texts.map((text: string) => `* ${text}`).join(newLine)
-export const mdNote = (text: string): string => `> ${text}${newLine}`
 export const mdCodeBlock = (text: string): string =>
   `\`\`\`${newLine}${text}${newLine}\`\`\`${newLine}`
+
+export const mdBold = (text: string): string => `__${text}__`
 export const mdCell = (text: string): string => `| ${text} |`
-export const mdRaw = (text: string): string => `${text}${newLine}`
+export const mdLink = (text: string, url: string): string => `[${text}](${url})`
 
 type Position = 'left' | 'center' | 'right'
 interface MdTable {
@@ -69,35 +70,39 @@ export const mdCommonHeader = (): string => {
 }
 
 export const mdAnnotationExample = (annot: Annotation): string => {
-  const title = annot.arg ? mdRaw(annot.arg) : mdBold('Example:')
+  const title = annot.arg ? mdRaw(annot.arg) : mdBold(`Example:${newLine}`)
   const example = mdCodeBlock(annot.block.join(newLine))
   return `${title}${newLine}${example}`
 }
 
 export const mdAnnotationNote = (annot: Annotation): string => {
-  const title = annot.arg ? mdRaw(annot.arg) : mdBold('Note:')
+  const title = annot.arg ? mdRaw(annot.arg) : mdBold(`Note:${newLine}`)
   const note = annot.block.join(newLine)
   return `${title}${newLine}${note}${newLine}`
+}
+
+export const mdAgenda = (yamlMap: ReuseableWorkflowsYamlFileMap): string => {
+  const dir = './.github/workflows/'
+  const agendaItem = Object.keys(yamlMap).map((key, i) => {
+    return `${mdLink(
+      yamlMap[key].name,
+      spaceToDash(`#${i + 1}: ${yamlMap[key].name}`)
+    )} ( ${mdLink('📄', dir + key)} )`
+  })
+  return mdList(agendaItem)
 }
 
 export const mdReusableWorkflows = ({
   workflowCallYamlMap: yamlMap,
   annotationMap,
 }: ReadYamlResult): string => {
-  const dir = './.github/workflows/'
-  const names = Object.keys(yamlMap).map((key, i) => {
-    return `${mdLink(
-      yamlMap[key].name,
-      spaceToDash(`#${i + 1}: ${yamlMap[key].name}`)
-    )} ( ${mdLink('📄', dir + key)} )`
-  })
-  const mdAgenda = mdList(names)
-  const mdWfs = Object.keys(yamlMap)
+  const agendaDoc = mdAgenda(yamlMap)
+  const wfsDoc = Object.keys(yamlMap)
     .map((key, i) =>
       mdReusableWorkflow(i + 1, yamlMap[key], annotationMap[key])
     )
     .join(newLine)
-  return `${mdAgenda}${newLine}${newLine}${mdWfs}`
+  return `${agendaDoc}${newLine}${newLine}${wfsDoc}`
 }
 
 export const mdReusableWorkflow = (
@@ -105,15 +110,15 @@ export const mdReusableWorkflow = (
   obj: ReuseableWorkflowsYaml,
   annotationObj: Annotations = { example: [], note: [] }
 ): string => {
-  const mdExamples = annotationObj.example
+  const examplesDoc = annotationObj.example
     .map(mdAnnotationExample)
     .join(newLine)
-  const mdNotes = annotationObj.note.map(mdAnnotationNote).join(newLine)
-  const mdContent = Object.keys(obj)
+  const notesDoc = annotationObj.note.map(mdAnnotationNote).join(newLine)
+  const contentDoc = Object.keys(obj)
     .map((key) => {
       switch (key) {
         case 'name':
-          return mdH2(`${num}: ${obj[key]}`) + mdExamples
+          return mdH2(`${num}: ${obj[key]}`) + examplesDoc
         case 'on':
           return onWorkflowCall(obj[key])
         default:
@@ -121,7 +126,7 @@ export const mdReusableWorkflow = (
       }
     })
     .join(newLine)
-  return `${mdContent}${mdNotes}`
+  return `${contentDoc}${notesDoc}`
 }
 
 export const onWorkflowCall = ({
@@ -160,21 +165,21 @@ export const onWorkflowCallInputs = (
     return [
       String(i + 1), // #
       obj[key].required ? '✅' : '', // required
-      obj[key].type, // type
-      key, // name
-      obj[key].default || '', // default
-      obj[key].description || '', // description
+      ToStringSafe(obj[key].type), // type
+      ToStringSafe(key), // name
+      ToStringSafe(obj[key].default), // default
+      ToStringSafe(obj[key].description), // description
     ]
   })
 
-  const tableTitle = mdH3('Inputs')
-  const table = mdTable({
+  const tableTitleDoc = mdH3('Inputs')
+  const tableDoc = mdTable({
     headers,
     rows,
     positions,
   })
 
-  return `${tableTitle}${newLine}${table}${newLine}`
+  return `${tableTitleDoc}${newLine}${tableDoc}${newLine}`
 }
 
 export const onWorkflowCallOutputs = (
@@ -186,19 +191,19 @@ export const onWorkflowCallOutputs = (
   const rows = Object.keys(obj).map((key, i) => {
     return [
       String(i + 1), // #
-      key, // name
-      obj[key].description || '', // description
+      ToStringSafe(key), // name
+      ToStringSafe(obj[key].description), // description
     ]
   })
 
-  const tableTitle = mdH3('Outputs')
-  const table = mdTable({
+  const tableTitleDoc = mdH3('Outputs')
+  const tableDoc = mdTable({
     headers,
     rows,
     positions,
   })
 
-  return `${tableTitle}${newLine}${table}${newLine}`
+  return `${tableTitleDoc}${newLine}${tableDoc}${newLine}`
 }
 
 export const onWorkflowCallSecrets = (
@@ -211,19 +216,19 @@ export const onWorkflowCallSecrets = (
     return [
       String(i + 1), // #
       obj[key].required ? '○' : '×', // required
-      key, // name
-      obj[key].description || '', // description
+      ToStringSafe(key), // name
+      ToStringSafe(obj[key].description), // description
     ]
   })
 
-  const tableTitle = mdH3('Secrets')
-  const table = mdTable({
+  const tableTitleDoc = mdH3('Secrets')
+  const tableDoc = mdTable({
     headers,
     rows,
     positions,
   })
 
-  return `${tableTitle}${newLine}${table}${newLine}`
+  return `${tableTitleDoc}${newLine}${tableDoc}${newLine}`
 }
 
 export const mdUnknownKey = (obj: unknown): string => {
