@@ -7,5 +7,5 @@ jobs:
   test:
     uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
     with:
-      filepath: README.md
-      overwrite: false
+      make-pull-request: false
+      github-base-url: "https://api.github.com"
