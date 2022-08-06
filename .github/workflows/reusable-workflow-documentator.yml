@@ -18,7 +18,6 @@
 #     with:
 #       filepath: .github/docs/reusable-workflow-doc.md
 #       overwrite: false
-#       make-pull-request: true
 #       github-base-url: "https://some-enterprise.github.com/api/v3"
 
 
@@ -27,25 +26,20 @@ on:
   workflow_call:
     inputs:
       filepath:
-        required: true
+        required: false
         type: string
         default: README.md
-        description: description sample
+        description: "Filepath to write the reusable workflow documentation (default: README.md)"
       overwrite:
-        required: true
-        type: boolean
-        default: false
-        description: overwrite existing file
-      make-pull-request:
-        type: boolean
         required: false
+        type: boolean
         default: false
-        description: 'Should make a pull request'
+        description: "Overwrite the file if it already exists (default: false)"
       github-base-url:
         type: string
         required: false
         default: "https://api.github.com"
-        description: 'GitHub Host domain (Support for GitHub Enterprise)'
+        description: "GitHub Host domain (Support for GitHub Enterprise) (default: https://api.github.com)"
 
 jobs:
   example_job1:
@@ -57,7 +51,7 @@ jobs:
         id: documentator
         uses: ./
         with:
-          make-pull-request: ${{ inputs.make-pull-request }}
+          make-pull-request: false
           github-base-url: ${{ inputs.github-base-url }}
 
       - name: Add a new file
