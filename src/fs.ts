@@ -3,7 +3,7 @@ import * as fs from 'fs'
 import constants from './constants'
 import * as path from 'path'
 import * as yaml from 'js-yaml'
-import { debug } from './helpers'
+import { log } from './helpers'
 import { newLine } from './markdown'
 
 const commentRegExp = /^\s*#/
@@ -33,7 +33,7 @@ export const readYamls = (): ReadYamlResult => {
   const annotationMap: GithubActionsAnnotationMap = {}
   fs.readdirSync(constants.workflowsDir).forEach((fName) => {
     if (!fName.endsWith('.yml')) return
-    debug('Found file: ' + fName)
+    log('Found file: ' + fName)
     try {
       const fPath = path.join(constants.workflowsDir, fName)
       const file = fs.readFileSync(fPath, 'utf-8')
@@ -42,9 +42,9 @@ export const readYamls = (): ReadYamlResult => {
 
       // parse yaml file and filter workflow calls
       const doc = yaml.load(actualLines.join(newLine)) as GitHubActionsYaml
-      debug(doc)
+      log(doc)
       if (isWorkflowCall(doc)) {
-        debug('File is not a valid yml file: ' + fName)
+        log('File is not a valid yml file: ' + fName)
         workflowCallYamlMap[fName] = doc
 
         // parse annotation comments
@@ -53,7 +53,7 @@ export const readYamls = (): ReadYamlResult => {
       }
       return
     } catch {
-      debug('File is not a valid yml file: ' + fName)
+      log('File is not a valid yml file: ' + fName)
       return
     }
   })
@@ -79,7 +79,7 @@ const parseAnnotationComments = (lines: string[]): Annotations => {
     const annotType = annotMap[0] as AnnotationType
     const annotArg = annotMap[1] || ''
     if (!result[annotType]) {
-      debug('Unknown annotation: ' + annotType)
+      log('Unknown annotation: ' + annotType)
       return
     }
     result[annotType].push({ arg: annotArg, block: trimComments(block) })

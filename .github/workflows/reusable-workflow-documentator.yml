@@ -17,16 +17,26 @@ name: Reusable Workflow Documentator
 on:
   workflow_call:
     inputs:
-      filepath:
-        required: true
-        type: string
-        default: README.md
-        description: description sample
-      overwrite:
-        required: true
+      # filepath:
+      #   required: true
+      #   type: string
+      #   default: README.md
+      #   description: description sample
+      # overwrite:
+      #   required: true
+      #   type: boolean
+      #   default: false
+      #   description: overwrite existing file
+      make-pull-request:
         type: boolean
+        required: false
         default: false
-        description: overwrite existing file
+        description: 'Should make a pull request'
+      github-base-url:
+        type: string
+        required: false
+        default: "https://api.github.com"
+        description: 'GitHub Host domain (Support for GitHub Enterprise)'
 
 jobs:
   example_job1:
@@ -37,16 +47,18 @@ jobs:
       - name: Reusable Workflow Documentator Action
         id: documentator
         uses: ./
+        with:
+          make-pull-request: ${{ inputs.make-pull-request }}
+          github-base-url: ${{ inputs.github-base-url }}
 
       - name: Add a new file
         id: changes
         run: |
-          # if [ ${{ inputs.overwrite }} ]; then
-          #   echo "${{ steps.documentator.outputs.document }}" > ${{ inputs.filepath }}
-          # else
-          #   echo "${{ steps.documentator.outputs.document }}" >> ${{ inputs.filepath }}
-          # fi
-          echo '${{ steps.documentator.outputs.document }}' >> ${{ inputs.filepath }}
+          if [ ${{ inputs.overwrite }} ]; then
+            echo "${{ steps.documentator.outputs.document }}" > ${{ inputs.filepath }}
+          else
+            echo "${{ steps.documentator.outputs.document }}" >> ${{ inputs.filepath }}
+          fi
           git add -N .
           echo "::set-output name=count::$(git diff --name-only | wc -l)"
 

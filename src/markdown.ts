@@ -1,4 +1,5 @@
 import { ReadYamlResult, Annotations, Annotation } from './fs'
+import { spaceToDash } from './helpers'
 import { ReuseableWorkflowsYaml } from './types'
 
 export const newLine = '\n'
@@ -14,6 +15,7 @@ export const mdH1 = (text: string): string => `# ${text}${newLine}`
 export const mdH2 = (text: string): string => `## ${text}${newLine}`
 export const mdH3 = (text: string): string => `### ${text}${newLine}`
 export const mdBold = (text: string): string => `__${text}__${newLine}`
+export const mdLink = (text: string, url: string): string => `[${text}](${url})`
 export const mdList = (texts: string[]): string =>
   texts.map((text: string) => `* ${text}`).join(newLine)
 export const mdNote = (text: string): string => `> ${text}${newLine}`
@@ -60,16 +62,16 @@ export const mdTableColumn = (row: string[]): string => {
 export const mdCommonHeader = (): string => {
   const link = 'https://github.com/gizumon/reusable-workflow-documentator'
   const note = mdNote(
-    `🚀 Generated automatically by [reusable-workflow-documentator](${link}) 🚀${newLine}`
+    `🚀 Generated automatically by [reusable-workflow-documentator](${link}) 🚀`
   )
   const title = mdH1('🔰 Reusable Workflows Usage 🔰')
-  return `${divider}${newLine}${note}${newLine}${title}${newLine}`
+  return `${divider}${newLine}${note}${newLine}${title}`
 }
 
 export const mdAnnotationExample = (annot: Annotation): string => {
   const title = annot.arg ? mdRaw(annot.arg) : mdBold('Example:')
   const example = mdCodeBlock(annot.block.join(newLine))
-  return `${title}${newLine}${example}${newLine}`
+  return `${title}${newLine}${example}`
 }
 
 export const mdAnnotationNote = (annot: Annotation): string => {
@@ -82,11 +84,20 @@ export const mdReusableWorkflows = ({
   workflowCallYamlMap: yamlMap,
   annotationMap,
 }: ReadYamlResult): string => {
-  return Object.keys(yamlMap)
+  const dir = './.github/workflows/'
+  const names = Object.keys(yamlMap).map((key, i) => {
+    return `${mdLink(
+      yamlMap[key].name,
+      spaceToDash(`#${i + 1}: ${yamlMap[key].name}`)
+    )} ( ${mdLink('📄', dir + key)} )`
+  })
+  const mdAgenda = mdList(names)
+  const mdWfs = Object.keys(yamlMap)
     .map((key, i) =>
       mdReusableWorkflow(i + 1, yamlMap[key], annotationMap[key])
     )
     .join(newLine)
+  return `${mdAgenda}${newLine}${newLine}${mdWfs}`
 }
 
 export const mdReusableWorkflow = (

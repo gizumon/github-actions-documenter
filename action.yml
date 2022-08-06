@@ -6,6 +6,20 @@ branding:
   icon: 'book-open'  
   color: 'green'
 
+inputs:
+  # debug:
+  #   required: false
+  #   default: "false"
+  #   description: 'debug mode'
+  make-pull-request:
+    required: false
+    default: "false"
+    description: 'Should make a pull request'
+  github-base-url:
+    required: false
+    default: "https://api.github.com"
+    description: 'GitHub Host domain (Support for GitHub Enterprise)'
+
 outputs:
   document:
     description: 'Reusable workflow markdown document'
