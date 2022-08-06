@@ -17,16 +17,16 @@ name: Reusable Workflow Documentator
 on:
   workflow_call:
     inputs:
-      # filepath:
-      #   required: true
-      #   type: string
-      #   default: README.md
-      #   description: description sample
-      # overwrite:
-      #   required: true
-      #   type: boolean
-      #   default: false
-      #   description: overwrite existing file
+      filepath:
+        required: true
+        type: string
+        default: README.md
+        description: description sample
+      overwrite:
+        required: true
+        type: boolean
+        default: false
+        description: overwrite existing file
       make-pull-request:
         type: boolean
         required: false
