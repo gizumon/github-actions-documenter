@@ -55,7 +55,7 @@ jobs:
         id: changes
         run: |
           if [ ${{ inputs.overwrite }} ]; then
-            echo "${{ steps.documentator.outputs.document }}" > ${{ inputs.filepath }}
+            echo '${{ steps.documentator.outputs.document }}' > ${{ inputs.filepath }}
           else
             echo "${{ steps.documentator.outputs.document }}" >> ${{ inputs.filepath }}
           fi
