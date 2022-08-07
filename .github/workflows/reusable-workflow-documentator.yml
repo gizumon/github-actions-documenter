@@ -108,17 +108,12 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git commit -m "⚙ Commit by Reusable workflow documentator"
-          echo '${{ inputs.make-pull-request }}'
-          echo '${{ inputs.make-pull-request == true }}'
-          echo '${{ inputs.make-pull-request == 'true' }}'
-          echo '${{ inputs.make-pull-request != 'true' }}'
-          echo '${{ inputs.make-pull-request == false }}'
-          echo '${{ inputs.make-pull-request == 'false' }}'
-          echo '${{ inputs.make-pull-request != 'false' }}'
-          if [ ${{ inputs.make-pull-request == 'false' }} ]; then
-            echo ${{ github.ref_name }}
-            # git push origin ${{ github.ref_name }}
+          if ${{ inputs.make-pull-request == false }}; then
+            git push origin ${{ github.ref_name }}
           fi
+          echo "$( ${{ steps.changes.outputs.count }} > 0 )"
+          echo "$( ${{ inputs.make-pull-request == true }} )"
+          echo "$( ${{ steps.changes.outputs.count }} > 0 && ${{ inputs.make-pull-request == 'true' }} )"
 
       - name: Create New Pull Request If Needed
         if: ${{ steps.changes.outputs.count }} > 0 && ${{ inputs.make-pull-request == 'true' }}
