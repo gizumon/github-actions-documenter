@@ -59,7 +59,7 @@ const runMain = async (): Promise<void> => {
     if (token && !props.generateOnly) {
       log('Run result commit and push...')
       exec.exec('echo', [
-        result,
+        `'${result}'`,
         props.overwrite ? '>' : '>>',
         props.documentPath,
       ])

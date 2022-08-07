@@ -298,7 +298,7 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
         if (token && !props.generateOnly) {
             (0, helpers_1.log)('Run result commit and push...');
             exec.exec('echo', [
-                result,
+                `'${result}'`,
                 props.overwrite ? '>' : '>>',
                 props.documentPath,
             ]);
