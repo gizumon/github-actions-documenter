@@ -1,5 +1,5 @@
 # @example=### Basic example
-# name: "Simple example"
+# name: "Basic example"
 # on:
 #   pull_request:
 #     paths:
@@ -11,7 +11,7 @@
 #       filepath: README.md
 
 # @example=### Advanced example (with GHES support)
-# name: "Example"
+# name: "Advanced example"
 # on:
 #   pull_request:
 #     paths:
