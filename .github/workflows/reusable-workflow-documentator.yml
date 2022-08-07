@@ -10,7 +10,7 @@
 #     with:
 #       filepath: README.md
 
-# @example=### Advanced example
+# @example=### Advanced example (with GHES support)
 # name: "Example"
 # on:
 #   pull_request:
