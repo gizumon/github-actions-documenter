@@ -96,6 +96,7 @@ interface WorkflowCallInputs {
 }
 interface WorkflowCallOutputs {
   [key: string]: {
+    value: string
     description: string
     required: boolean
   }

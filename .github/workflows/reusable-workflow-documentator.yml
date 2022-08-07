@@ -54,11 +54,11 @@ on:
       #   description: "Generate document and set output result only. (default: false)"
     outputs:
       document:
-        type: string
         description: "Reusable workflow markdown document"
+        value: "${{ jobs.documentation.outputs.document }}"
       agenda:
-        type: string
         description: "Reusable workflow agenda"
+        value: "${{ jobs.documentation.outputs.agenda }}"
     secrets:
       ACCESS_TOKEN:
         required: true
@@ -66,8 +66,8 @@ on:
 env:
   GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 jobs:
-  example_job1:
-    name: example job 1
+  documentation:
+    name: Generate reusable workflow document
     runs-on: ubuntu-latest
     outputs:
       document: ${{ steps.documentator.outputs.document }}
