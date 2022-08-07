@@ -1,27 +1,33 @@
 # @example=### Basic example
 # name: "Simple example"
 # on:
-#   push:
-#     branches: [ main ]
+#   pull_request:
+#     paths:
+#       - '.github/workflows/*.yml'
 # jobs:
 #   test:
 #     uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
 #     with:
-#       filepath: .github/docs/reusable-workflow-doc.md
+#       filepath: README.md
 
-# @example=### Advanced example (GHES support)
+# @example=### Advanced example
 # name: "Example"
 # on:
-#   push:
-#     branches: [ main ]
+#   pull_request:
+#     paths:
+#       - '.github/workflows/*.yml'
 # jobs:
 #   test:
 #     uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
 #     with:
 #       filepath: .github/docs/reusable-workflow-doc.md
-#       overwrite: false
+#       overwrite: true
 #       make-pull-request: true
 #       github-base-url: "https://some-enterprise.github.com/api/v3"
+
+# @note=### Support event
+# - pull_request
+# - push
 
 name: Reusable Workflow Documentator
 on:
