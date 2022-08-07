@@ -28,4 +28,4 @@ export const ToStringSafe = (str: unknown): string => {
 }
 
 export const toAnchorLink = (str: string): string =>
-  encodeURIComponent(str.trim().toLocaleLowerCase().replace(/\s/g, '-'))
+  '#' + encodeURIComponent(str.trim().toLocaleLowerCase().replace(/\s/g, '-'))

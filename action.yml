@@ -7,14 +7,22 @@ branding:
   color: 'green'
 
 inputs:
-  # debug:
-  #   required: false
-  #   default: "false"
-  #   description: 'debug mode'
+  filepath:
+    required: true
+    default: "README.md"
+    description: 'Filepath to write the reusable workflow documentation. (default: README.md)'
+  overwrite:
+    required: false
+    default: "false"
+    description: 'If true, overwrite the filepath file. (default: false)'
   make-pull-request:
     required: false
     default: "false"
-    description: 'Should make a pull request'
+    description: 'If true, make a pull request to ref branch. If false, directly push generated doc to ref branch. (default: false)'
+  generate-only:
+    required: false
+    default: "false"
+    description: 'Generate document and set output result only. (default: false)'
   github-base-url:
     required: false
     default: "https://api.github.com"
@@ -23,6 +31,8 @@ inputs:
 outputs:
   document:
     description: 'Reusable workflow markdown document'
+  agenda:
+    description: 'Reusable workflow agenda'
 
 runs:
   using: 'node16'

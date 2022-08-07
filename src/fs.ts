@@ -42,18 +42,18 @@ export const readYamls = (): ReadYamlResult => {
 
       // parse yaml file and filter workflow calls
       const doc = yaml.load(actualLines.join(newLine)) as GitHubActionsYaml
-      log(doc)
       if (isWorkflowCall(doc)) {
-        log('File is not a valid yml file: ' + fName)
-        workflowCallYamlMap[fName] = doc
+        log('File is a valid workflow_call yml file: ' + fName)
+        workflowCallYamlMap[fPath] = doc
 
         // parse annotation comments
         const annotations = parseAnnotationComments(lines)
-        annotationMap[fName] = annotations
+        annotationMap[fPath] = annotations
       }
       return
-    } catch {
+    } catch (e) {
       log('File is not a valid yml file: ' + fName)
+      log(e instanceof Error ? e.message : e)
       return
     }
   })
