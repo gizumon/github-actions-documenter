@@ -26,8 +26,8 @@
 #       github-base-url: "https://some-enterprise.github.com/api/v3"
 
 # @note=### Support event
-# - pull_request
 # - push
+# - pull_request
 
 name: Reusable Workflow Documentator
 on:
@@ -114,7 +114,7 @@ jobs:
           git config user.email github-actions@github.com
           git commit -m "⚙ Commit by Reusable workflow documentator"
           if ${{ inputs.make-pull-request == false }}; then
-            if ${{ github.event_name == "pull_request" }}; then
+            if ${{ github.event_name == 'pull_request' }}; then
               echo "push to ${{ github.head_ref }} ... (event:pull_request)"
               git push origin main ${{ github.head_ref }}
             else
