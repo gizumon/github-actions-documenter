@@ -104,7 +104,8 @@ jobs:
       - name: Add a new file
         id: changes
         run: |
-          git checkout -b new origin/${{ steps.branch.outputs.name }}
+          git fetch
+          git checkout -b ${{ steps.branch.outputs.name }} origin/${{ steps.branch.outputs.name }}
           if ${{ inputs.overwrite }}; then
             echo '${{ steps.documentator.outputs.document }}' > ${{ inputs.filepath }}
           else
