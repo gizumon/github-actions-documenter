@@ -63,6 +63,7 @@ const runMain = async (): Promise<void> => {
         props.overwrite ? '>' : '>>',
         props.documentPath,
       ])
+      exec.exec('ls', ['-l', props.documentPath])
       exec.exec('git', ['config', 'user.name', 'GitHub Action Documentator'])
       exec.exec('git', ['config', 'user.email', 'github-action.com'])
       log(await exec.getExecOutput('git', ['status']))
