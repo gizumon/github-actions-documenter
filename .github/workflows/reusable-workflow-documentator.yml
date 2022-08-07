@@ -103,7 +103,7 @@ jobs:
       - name: Update document
         if: ${{ steps.changes.outputs.count > 0 }}
         run: |
-          echo ${{ steps.changes.outputs.count }}
+          echo "Changes files count = ${{ steps.changes.outputs.count }} ..."
           git config user.name github-actions
           git config user.email github-actions@github.com
           git commit -m "⚙ Commit by Reusable workflow documentator"
@@ -111,21 +111,12 @@ jobs:
             echo "push to ${{ github.ref_name }} ..."
             git push origin ${{ github.ref_name }}
           fi
-          if ${{ steps.changes.outputs.count }} > 0; then
-            echo "No.1 is true"
-          fi
-          if ${{ inputs.make-pull-request == true }}; then
-            echo "No.2 is true"
-          fi
-          if ${{ steps.changes.outputs.count }} > 0 && ${{ inputs.make-pull-request == true  }}; then
-            echo "No.3 is true"
-          fi
 
       - name: Create New Pull Request If Needed
         if: ${{ steps.changes.outputs.count > 0 }} && ${{ inputs.make-pull-request == true }}
         uses: peter-evans/create-pull-request@v3
         with:
-          title: Reusable Workflow Usage
+          title: "📝 Auto generated reusable workflow documentation"
           branch-suffix: timestamp
-          commit-message: Commit by Reusable workflow documentator
-          body: ${{ steps.documentator.outputs.document }}
+          commit-message: "⚙ Commit by Reusable workflow documentator"
+          body: "Generated document ↓\n---\n${{ steps.documentator.outputs.document }}"
