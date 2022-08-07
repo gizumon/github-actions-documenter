@@ -90,9 +90,21 @@ jobs:
           # make-pull-request: ${{ inputs.make-pull-request }}
           # generate-only: ${{ inputs.generate-only }}
 
+      - name: Get branch name
+        id: branch
+        run: |
+          if ${{ github.event_name == 'pull_request' }}; then
+            echo "branch name is ${{ github.head_ref }} ... (event:pull_request)"
+            echo "::set-output name=name::${{ github.head_ref }}"
+          else
+            echo "branch name is ${{ github.ref_name }} ... (event:push)"
+            echo "::set-output name=name::${{ github.ref_name }}"
+          fi
+          
       - name: Add a new file
         id: changes
         run: |
+          git checkout -b new origin/${{ steps.branch.outputs.name }}
           if ${{ inputs.overwrite }}; then
             echo '${{ steps.documentator.outputs.document }}' > ${{ inputs.filepath }}
           else
@@ -114,13 +126,8 @@ jobs:
           git config user.email github-actions@github.com
           git commit -m "⚙ Commit by Reusable workflow documentator"
           if ${{ inputs.make-pull-request == false }}; then
-            if ${{ github.event_name == 'pull_request' }}; then
-              echo "push to ${{ github.head_ref }} ... (event:pull_request)"
-              git push origin HEAD:${{ github.head_ref }}
-            else
-              echo "push to ${{ github.ref_name }} ... (event:push)"
-              git push origin HEAD:${{ github.ref_name }}
-            fi
+            echo "push to ${{ steps.branch.outputs.name }} ..."
+            git push origin HEAD:${{ steps.branch.outputs.name }}
           fi
 
       - name: Create New Pull Request If Needed

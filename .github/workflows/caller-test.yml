@@ -1,6 +1,6 @@
 name: "Caller Test"
 on:
-  pull_request:
+  push:
     paths:
       - '.github/workflows/*.yml'
 
