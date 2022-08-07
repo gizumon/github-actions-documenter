@@ -37,7 +37,7 @@ on:
         required: true
         type: string
         default: README.md
-        description: "Filepath to write the reusable workflow documentation. (default: README.md)"
+        description: "Filepath to write the generated reusable workflow document. (default: README.md)"
       github-base-url:
         type: string
         required: false
@@ -130,9 +130,10 @@ jobs:
             echo "push to ${{ steps.branch.outputs.name }} ..."
             git push origin HEAD:${{ steps.branch.outputs.name }}
           fi
+          echo ${{ (steps.changes.outputs.count > 0) && (inputs.make-pull-request == true) }}
 
       - name: Create New Pull Request If Needed
-        if: ${{ steps.changes.outputs.count > 0 }} && ${{ inputs.make-pull-request == true }}
+        if: ${{ (steps.changes.outputs.count > 0) && (inputs.make-pull-request == true) }}
         uses: peter-evans/create-pull-request@v3
         with:
           title: "📝 Auto generated reusable workflow documentation"
