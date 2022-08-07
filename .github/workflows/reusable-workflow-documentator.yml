@@ -69,29 +69,29 @@ jobs:
           generate-only: ${{ inputs.generate-only }}
           github-base-url: ${{ inputs.github-base-url }}
 
-      - name: Add a new file
-        id: changes
-        run: |
-          if [ ${{ inputs.overwrite }} ]; then
-            echo '${{ steps.documentator.outputs.document }}' > ${{ inputs.filepath }}
-          else
-            echo "${{ steps.documentator.outputs.document }}" >> ${{ inputs.filepath }}
-          fi
-          git add -N .
-          echo "::set-output name=count::$(git diff --name-only | wc -l)"
+      # - name: Add a new file
+      #   id: changes
+      #   run: |
+      #     if [ ${{ inputs.overwrite }} ]; then
+      #       echo '${{ steps.documentator.outputs.document }}' > ${{ inputs.filepath }}
+      #     else
+      #       echo "${{ steps.documentator.outputs.document }}" >> ${{ inputs.filepath }}
+      #     fi
+      #     git add -N .
+      #     echo "::set-output name=count::$(git diff --name-only | wc -l)"
 
-      - name: Update document
-        if: ${{ steps.changes.outputs.count }} > 0
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          # git commit -m "Commit by Reusable workflow documentator"
+      # - name: Update document
+      #   if: ${{ steps.changes.outputs.count }} > 0
+      #   run: |
+      #     git config user.name github-actions
+      #     git config user.email github-actions@github.com
+      #     # git commit -m "Commit by Reusable workflow documentator"
 
-      - name: Create New Pull Request If Needed
-        if: steps.documentator.outputs.document != ''
-        uses: peter-evans/create-pull-request@v3
-        with:
-          title: Reusable Workflow Usage
-          branch-suffix: timestamp
-          commit-message: Commit by Reusable workflow documentator
-          body: ${{ steps.documentator.outputs.document }}
+      # - name: Create New Pull Request If Needed
+      #   if: steps.documentator.outputs.document != ''
+      #   uses: peter-evans/create-pull-request@v3
+      #   with:
+      #     title: Reusable Workflow Usage
+      #     branch-suffix: timestamp
+      #     commit-message: Commit by Reusable workflow documentator
+      #     body: ${{ steps.documentator.outputs.document }}
