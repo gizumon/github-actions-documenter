@@ -8,6 +8,7 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const constants = {
+    anchorAnnotation: '`@overwrite-anchor',
     workflowsDir: './.github/workflows/',
 };
 exports.default = constants;
@@ -284,7 +285,7 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
             core.setOutput('result', '');
             return;
         }
-        const anchorDoc = props.overwrite ? (0, markdown_1.mdAnchor)() : '';
+        const anchorDoc = (0, markdown_1.mdAnchor)();
         const headerDoc = (0, markdown_1.mdCommonHeader)();
         const contentDoc = (0, markdown_1.mdReusableWorkflows)(readYamlResult);
         const agendaDoc = (0, markdown_1.mdAgenda)(readYamlResult.workflowCallYamlMap);
@@ -369,15 +370,19 @@ runMain();
 /***/ }),
 
 /***/ 7213:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.mdUnknownKey = exports.onWorkflowCallSecrets = exports.onWorkflowCallOutputs = exports.onWorkflowCallInputs = exports.onWorkflowCall = exports.mdReusableWorkflow = exports.mdReusableWorkflows = exports.mdAgenda = exports.mdAnnotationNote = exports.mdAnnotationExample = exports.mdCommonHeader = exports.mdAnchor = exports.mdTableColumn = exports.mdTableRows = exports.mdTablePosition = exports.mdTable = exports.mdLink = exports.mdCell = exports.mdBold = exports.mdCodeBlock = exports.mdList = exports.mdNote = exports.mdH3 = exports.mdH2 = exports.mdH1 = exports.mdRaw = exports.positionMap = exports.tbSeparator = exports.divider = exports.newLine = void 0;
+const constants_1 = __importDefault(__nccwpck_require__(9349));
 const helpers_1 = __nccwpck_require__(6682);
 exports.newLine = '\n';
-exports.divider = '---';
+exports.divider = `${exports.newLine}---${exports.newLine}`;
 exports.tbSeparator = ' | ';
 exports.positionMap = {
     left: ':---',
@@ -427,7 +432,7 @@ exports.mdTableColumn = mdTableColumn;
 // =====================================
 // Reusable workflows markdown generator
 // =====================================
-const mdAnchor = () => `@over-write-anchor=reusable-workflows-documents${exports.newLine}`;
+const mdAnchor = () => `${constants_1.default.anchorAnnotation}${exports.newLine}`;
 exports.mdAnchor = mdAnchor;
 const mdCommonHeader = () => {
     const link = 'https://github.com/gizumon/reusable-workflow-documentator';

@@ -1,3 +1,4 @@
+import constants from './constants'
 import { ReadYamlResult, Annotations, Annotation } from './fs'
 import { toAnchorLink, ToStringSafe } from './helpers'
 import { ReuseableWorkflowsYaml, ReuseableWorkflowsYamlFileMap } from './types'
@@ -60,7 +61,7 @@ export const mdTableColumn = (row: string[]): string => {
 // Reusable workflows markdown generator
 // =====================================
 
-export const mdAnchor = (): string => `@over-write-anchor${newLine}`
+export const mdAnchor = (): string => `${constants.anchorAnnotation}${newLine}`
 
 export const mdCommonHeader = (): string => {
   const link = 'https://github.com/gizumon/reusable-workflow-documentator'

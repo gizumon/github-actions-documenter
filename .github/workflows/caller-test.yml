@@ -1,8 +1,9 @@
 name: "Caller Test"
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    paths:
+      - '.github/workflows/*.yml'
+
 jobs:
   test:
     uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
