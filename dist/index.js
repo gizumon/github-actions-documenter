@@ -560,7 +560,7 @@ const onWorkflowCallSecrets = (obj) => {
     const rows = Object.keys(obj).map((key, i) => {
         return [
             String(i + 1),
-            obj[key].required ? '○' : '×',
+            obj[key].required ? '✅' : '',
             (0, helpers_1.ToStringSafe)(key),
             (0, helpers_1.ToStringSafe)(obj[key].description), // description
         ];

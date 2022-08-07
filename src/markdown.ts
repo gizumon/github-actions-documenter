@@ -217,7 +217,7 @@ export const onWorkflowCallSecrets = (
   const rows = Object.keys(obj).map((key, i) => {
     return [
       String(i + 1), // #
-      obj[key].required ? '○' : '×', // required
+      obj[key].required ? '✅' : '', // required
       ToStringSafe(key), // name
       ToStringSafe(obj[key].description), // description
     ]

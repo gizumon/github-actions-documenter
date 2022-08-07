@@ -115,7 +115,7 @@ jobs:
           echo '${{ inputs.make-pull-request == false }}'
           echo '${{ inputs.make-pull-request == 'false' }}'
           echo '${{ inputs.make-pull-request != 'false' }}'
-          if [ ${{ inputs.make-pull-request }} ]; then
+          if [ ${{ inputs.make-pull-request == 'false' }} ]; then
             echo ${{ github.ref_name }}
             # git push origin ${{ github.ref_name }}
           fi
