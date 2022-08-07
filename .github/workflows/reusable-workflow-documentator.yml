@@ -52,7 +52,7 @@ on:
         required: false
         type: boolean
         default: false
-        description: "If true, make a pull request to ref branch. If false, directly push generated doc to ref branch. (default: false)"
+        description: "If true, make a pull request to ref branch. If false, directly push to ref branch. (default: false)"
       # generate-only:
       #   required: false
       #   type: boolean
@@ -107,12 +107,13 @@ jobs:
           git fetch
           git checkout -B ${{ steps.branch.outputs.name }} origin/${{ steps.branch.outputs.name }}
           if ${{ inputs.overwrite }}; then
+            echo "Overwrite ${{ inputs.filepath }} file ..."
             echo '${{ steps.documentator.outputs.document }}' > ${{ inputs.filepath }}
           else
             num=$(grep -n "@overwrite-anchor" ${{ inputs.filepath }} | awk -F ':' '{print $1}' | head -n 1)
             if [ -n "${num}" ]; then
               echo "Remove ${num} line and below ..."
-              sed -e "${num},\$d" ${{ inputs.filepath }} > temp.txt
+              sed -e "$(( ${num} - 1 )),\$d" ${{ inputs.filepath }} > temp.txt
               cp -f temp.txt ${{ inputs.filepath }}
               rm -f temp.txt
             fi

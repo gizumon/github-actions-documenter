@@ -109,6 +109,7 @@ After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/
 
 </details>
 
+
 @overwrite-anchor
 
 ---
@@ -162,7 +163,7 @@ After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/
 | 1 | ✅ | string | filepath | README.md | Filepath to write the generated reusable workflow document. (default: README.md) |
 | 2 |  | string | github-base-url | https://api.github.com | GitHub Host domain (Support for GitHub Enterprise) (default: https://api.github.com) |
 | 3 |  | boolean | overwrite | false | If true, overwrite the filepath file. (default: false) |
-| 4 |  | boolean | make-pull-request | false | If true, make a pull request to ref branch. If false, directly push generated doc to ref branch. (default: false) |
+| 4 |  | boolean | make-pull-request | false | If true, make a pull request to ref branch. If false, directly push to ref branch. (default: false) |
 
 ### Outputs
 
