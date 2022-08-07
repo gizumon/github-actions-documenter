@@ -8,7 +8,7 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const constants = {
-    anchorAnnotation: '`@overwrite-anchor',
+    anchorAnnotation: '@overwrite-anchor',
     workflowsDir: './.github/workflows/',
 };
 exports.default = constants;
@@ -289,7 +289,7 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
         const headerDoc = (0, markdown_1.mdCommonHeader)();
         const contentDoc = (0, markdown_1.mdReusableWorkflows)(readYamlResult);
         const agendaDoc = (0, markdown_1.mdAgenda)(readYamlResult.workflowCallYamlMap);
-        const result = `${anchorDoc}${headerDoc}${markdown_1.newLine}${agendaDoc}${markdown_1.newLine}${contentDoc}`;
+        const result = `${markdown_1.newLine}${anchorDoc}${headerDoc}${markdown_1.newLine}${agendaDoc}${markdown_1.newLine}${contentDoc}`;
         core.setOutput('document', result);
         core.setOutput('agenda', agendaDoc);
         (0, helpers_1.log)('Done generate markdown processes ...');

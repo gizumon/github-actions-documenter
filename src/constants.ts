@@ -1,5 +1,5 @@
 const constants = {
-  anchorAnnotation: '`@overwrite-anchor',
+  anchorAnnotation: '@overwrite-anchor',
   workflowsDir: './.github/workflows/',
 }
 export default constants
