@@ -8,4 +8,4 @@ jobs:
       filepath: .github/docs/reusable-workflow-doc.md
       overwrite: true
     secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}

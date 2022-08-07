@@ -53,11 +53,13 @@ on:
         default: "https://api.github.com"
         description: "GitHub Host domain (Support for GitHub Enterprise) (default: https://api.github.com)"
     secrets:
-      GITHUB_TOKEN:
+      ACCESS_TOKEN:
         required: true
         description: "GitHub Personal Access Token"
+env:
+  GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 jobs:
-  example_job1:
+  example_job1:    
     name: example job 1
     runs-on: ubuntu-latest
     steps:
