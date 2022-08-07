@@ -23,7 +23,7 @@ interface Props {
 }
 const getProps = (): Props => ({
   overwrite: core.getInput('overwrite') === 'true',
-  documentPath: core.getInput('document-path'),
+  documentPath: core.getInput('filepath'),
   generateOnly: core.getInput('generate-only') === 'true',
   githubBaseUrl: core.getInput('github-base-url'),
   shouldMakePullRequest: core.getInput('make-pull-request') === 'true',
