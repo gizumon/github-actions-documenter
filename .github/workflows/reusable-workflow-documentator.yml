@@ -87,20 +87,20 @@ jobs:
             fi
             echo "${{ steps.documentator.outputs.document }}" >> ${{ inputs.filepath }}
           fi
-          git add -N .
+          git add ${{ inputs.filepath }}
           git status
           git diff --name-only
           echo "::set-output name=count::$(git diff --name-only | wc -l)"
 
       - name: Update document
-        if: ${{ steps.changes.outputs.count }} > 0 && ${{ ! inputs.make-pull-request }}
+        if: ${{ steps.changes.outputs.count }} > 0 && ${{ inputs.make-pull-request != 'true' }}
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
           git commit -m "⚙ Commit by Reusable workflow documentator"
 
       - name: Create New Pull Request If Needed
-        if: ${{ steps.changes.outputs.count }} > 0 && ${{ inputs.make-pull-request }}
+        if: ${{ steps.changes.outputs.count }} > 0 && ${{ inputs.make-pull-request == 'true' }}
         uses: peter-evans/create-pull-request@v3
         with:
           title: Reusable Workflow Usage
