@@ -302,7 +302,7 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
                 props.overwrite ? '>' : '>>',
                 props.documentPath,
             ]);
-            exec.exec('echo', ['test', props.overwrite ? '>' : '>>', 'test.txt']);
+            exec.exec('echo', ['test', props.overwrite ? '>' : '>>', '$(eval echo "test.txt")']);
             exec.exec('ls', ['-l']);
             exec.exec('git', ['config', 'user.name', 'GitHub Action Documentator']);
             exec.exec('git', ['config', 'user.email', 'github-action.com']);

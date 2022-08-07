@@ -62,6 +62,7 @@ jobs:
   example_job1:    
     name: example job 1
     runs-on: ubuntu-latest
+    working-directory: ./
     steps:
       - uses: actions/checkout@v2
       - name: Reusable Workflow Documentator Action
