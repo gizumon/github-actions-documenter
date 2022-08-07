@@ -105,7 +105,7 @@ jobs:
         id: changes
         run: |
           git fetch
-          git checkout -b ${{ steps.branch.outputs.name }} origin/${{ steps.branch.outputs.name }}
+          git checkout -B ${{ steps.branch.outputs.name }} origin/${{ steps.branch.outputs.name }}
           if ${{ inputs.overwrite }}; then
             echo '${{ steps.documentator.outputs.document }}' > ${{ inputs.filepath }}
           else
