@@ -31,12 +31,22 @@ on:
         required: true
         type: string
         default: README.md
-        description: "Filepath to write the reusable workflow documentation (default: README.md)"
+        description: "Filepath to write the reusable workflow documentation. (default: README.md)"
       overwrite:
         required: false
         type: boolean
         default: false
-        description: "Overwrite the file if it already exists (default: false)"
+        description: "If true, overwrite the filepath file. (default: false)"
+      make-pull-request:
+        required: false
+        type: boolean
+        default: false
+        description: "If true, make a pull request to ref branch. If false, directly push generated doc to ref branch. (default: false)"
+      generate-only:
+        required: false
+        type: boolean
+        default: false
+        description: "Generate document and set output result only. (default: false)"
       github-base-url:
         type: string
         required: false
@@ -53,7 +63,10 @@ jobs:
         id: documentator
         uses: ./
         with:
-          make-pull-request: false
+          filepath: ${{ inputs.filepath }}
+          overwrite: ${{ inputs.overwrite }}
+          make-pull-request: ${{ inputs.make-pull-request }}
+          generate-only: ${{ inputs.generate-only }}
           github-base-url: ${{ inputs.github-base-url }}
 
       - name: Add a new file
