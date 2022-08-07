@@ -1,6 +1,8 @@
 name: "Caller Test"
-on: pull_request
-
+on:
+  push:
+    branches:
+      - main
 jobs:
   test:
     uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
