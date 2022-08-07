@@ -25,7 +25,7 @@
 #       make-pull-request: true
 #       github-base-url: "https://some-enterprise.github.com/api/v3"
 
-# @note=### Support event
+# @note=### Support events
 # - push
 # - pull_request
 
