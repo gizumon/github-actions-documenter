@@ -1,7 +1,5 @@
 name: "Caller Test"
-on:
-  push:
-    branches: [ main ]
+on: pull_request
 
 jobs:
   test:
@@ -9,3 +7,5 @@ jobs:
     with:
       filepath: .github/docs/reusable-workflow-doc.md
       overwrite: true
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

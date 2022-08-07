@@ -52,7 +52,10 @@ on:
         required: false
         default: "https://api.github.com"
         description: "GitHub Host domain (Support for GitHub Enterprise) (default: https://api.github.com)"
-
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+        description: "GitHub Personal Access Token"
 jobs:
   example_job1:
     name: example job 1
