@@ -52,6 +52,13 @@ on:
       #   type: boolean
       #   default: false
       #   description: "Generate document and set output result only. (default: false)"
+    outputs:
+      document:
+        type: string
+        description: "Reusable workflow markdown document"
+      agenda:
+        type: string
+        description: "Reusable workflow agenda"
     secrets:
       ACCESS_TOKEN:
         required: true
@@ -62,6 +69,9 @@ jobs:
   example_job1:
     name: example job 1
     runs-on: ubuntu-latest
+    outputs:
+      document: ${{ steps.documentator.outputs.document }}
+      agenda: ${{ steps.documentator.outputs.agenda }}
     steps:
       - uses: actions/checkout@v2
       - name: Reusable Workflow Documentator Action
@@ -93,11 +103,22 @@ jobs:
           echo "::set-output name=count::$(git diff --name-only | wc -l)"
 
       - name: Update document
-        if: ${{ steps.changes.outputs.count }} > 0 && ${{ inputs.make-pull-request != 'true' }}
+        if: ${{ steps.changes.outputs.count }} > 0
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
           git commit -m "⚙ Commit by Reusable workflow documentator"
+          echo '${{ inputs.make-pull-request }}'
+          echo '${{ inputs.make-pull-request == true }}'
+          echo '${{ inputs.make-pull-request == 'true' }}'
+          echo '${{ inputs.make-pull-request != 'true' }}'
+          echo '${{ inputs.make-pull-request == false }}'
+          echo '${{ inputs.make-pull-request == 'false' }}'
+          echo '${{ inputs.make-pull-request != 'false' }}'
+          if [ ${{ inputs.make-pull-request }} ]; then
+            echo ${{ github.ref_name }}
+            # git push origin ${{ github.ref_name }}
+          fi
 
       - name: Create New Pull Request If Needed
         if: ${{ steps.changes.outputs.count }} > 0 && ${{ inputs.make-pull-request == 'true' }}
