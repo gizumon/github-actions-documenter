@@ -65,7 +65,7 @@ const runMain = async (): Promise<void> => {
       ])
       exec.exec('git', ['config', 'user.name', 'GitHub Action Documentator'])
       exec.exec('git', ['config', 'user.email', 'github-action.com'])
-      exec.exec('git', ['add', props.documentPath])
+      exec.exec('git', ['add', '.'])
       exec.exec('git', ['commit', '-m', 'Update reusable workflows document'])
       const octokit = github.getOctokit(token, {
         baseUrl: props.githubBaseUrl
