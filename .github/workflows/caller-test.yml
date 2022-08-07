@@ -12,5 +12,3 @@ jobs:
       filepath: README.md
       overwrite: false
       make-pull-request: false
-    secrets:
-      ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
