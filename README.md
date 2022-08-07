@@ -123,7 +123,7 @@ After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/
 * [Reusable Workflow Documentator](#1-reusable-workflow-documentator) ( [📄](.github/workflows/reusable-workflow-documentator.yml) )
 
 ## 1: Reusable Workflow Documentator
-### Basic example
+### Example1: Basic example
 
 ```
  name: "Basic example"
@@ -138,7 +138,7 @@ After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/
        filepath: README.md
 ```
 
-### Advanced example (with GHES support)
+### Example2: Advanced example (with GHES support)
 
 ```
  name: "Advanced example"
@@ -171,12 +171,6 @@ After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/
 | :--- | :--- | :--- |
 | 1 | document | Reusable workflow markdown document |
 | 2 | agenda | Reusable workflow agenda |
-
-### Secrets
-
-| # | Required | Name | Description |
-| :--- | :---: | :--- | :--- |
-| 1 | ✅ | ACCESS_TOKEN | GitHub Personal Access Token |
 
 
 ### Support events
