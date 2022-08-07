@@ -17,7 +17,7 @@ export const mdH2 = (text: string): string => `## ${text}${newLine}`
 export const mdH3 = (text: string): string => `### ${text}${newLine}`
 export const mdNote = (text: string): string => `> ${text}${newLine}`
 export const mdList = (texts: string[]): string =>
-  texts.map((text: string) => `* ${text}`).join(newLine)
+  texts.map((text: string) => `* ${text}`).join(newLine) + newLine
 export const mdCodeBlock = (text: string): string =>
   `\`\`\`${newLine}${text}${newLine}\`\`\`${newLine}`
 

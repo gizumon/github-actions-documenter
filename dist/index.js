@@ -59,7 +59,7 @@ const annotationRegExp = /^\s*#\s*@/;
 const readYamls = () => {
     const workflowCallYamlMap = {};
     const annotationMap = {};
-    fs.readdirSync(constants_1.default.workflowsDir).forEach(fName => {
+    fs.readdirSync(constants_1.default.workflowsDir).forEach((fName) => {
         if (!fName.endsWith('.yml'))
             return;
         (0, helpers_1.log)('Found file: ' + fName);
@@ -67,7 +67,7 @@ const readYamls = () => {
             const fPath = path.join(constants_1.default.workflowsDir, fName);
             const file = fs.readFileSync(fPath, 'utf-8');
             const lines = file.split(markdown_1.newLine);
-            const actualLines = lines.filter(l => !commentRegExp.test(l));
+            const actualLines = lines.filter((l) => !commentRegExp.test(l));
             // parse yaml file and filter workflow calls
             const doc = yaml.load(actualLines.join(markdown_1.newLine));
             if (isWorkflowCall(doc)) {
@@ -103,7 +103,7 @@ const parseAnnotationComments = (lines) => {
         if (block.length === 0)
             return;
         const firstLine = block.shift() || '';
-        const annotLine = firstLine.replace(annotationRegExp, '').trim();
+        const annotLine = firstLine === null || firstLine === void 0 ? void 0 : firstLine.replace(annotationRegExp, '').trim();
         const annotMap = annotLine.split('=');
         const annotType = annotMap[0];
         const annotArg = annotMap[1] || '';
@@ -145,7 +145,7 @@ found = false // found annotation comment in previous line
     return recursiveFilterAnnotationComments(lines, commentsBlocks, false);
 };
 const trimComments = (comments) => {
-    return comments.map((comment) => comment.replace(commentRegExp, ''));
+    return comments.map(comment => comment === null || comment === void 0 ? void 0 : comment.replace(commentRegExp, ''));
 };
 
 
@@ -187,7 +187,7 @@ const core = __importStar(__nccwpck_require__(6914));
 // TODO: Fix this
 const log = (msg) => {
     // core.debug(msg)
-    console.log(msg);
+    // console.log(msg)
     core.info(msg);
 };
 exports.log = log;
@@ -208,7 +208,12 @@ const ToStringSafe = (str) => {
     }
 };
 exports.ToStringSafe = ToStringSafe;
-const toAnchorLink = (str) => '#' + encodeURIComponent(str.trim().toLocaleLowerCase().replace(/\s/g, '-'));
+const toAnchorLink = (str) => '#' +
+    encodeURIComponent(str
+        .trim()
+        .toLocaleLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^0-9a-zA-Z-]/, ''));
 exports.toAnchorLink = toAnchorLink;
 
 
@@ -286,18 +291,24 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
         const agendaDoc = (0, markdown_1.mdAgenda)(readYamlResult.workflowCallYamlMap);
         const result = `${anchorDoc}${headerDoc}${markdown_1.newLine}${agendaDoc}${markdown_1.newLine}${contentDoc}`;
         core.setOutput('document', result);
-        core.setOutput('agenda', markdown_1.mdAgenda);
+        core.setOutput('agenda', agendaDoc);
         (0, helpers_1.log)('Done generate markdown processes ...');
         (0, helpers_1.log)(result);
         const token = process.env.GITHUB_TOKEN;
         if (token && !props.generateOnly) {
-            exec.exec('echo', [result, props.overwrite ? '>' : '>>', props.documentPath]);
+            exec.exec('echo', [
+                result,
+                props.overwrite ? '>' : '>>',
+                props.documentPath,
+            ]);
             exec.exec('git', ['config', 'user.name', 'GitHub Action Documentator']);
             exec.exec('git', ['config', 'user.email', 'github-action.com']);
             exec.exec('git', ['add', props.documentPath]);
             exec.exec('git', ['commit', '-m', 'Update reusable workflows document']);
             const octokit = github.getOctokit(token, {
-                baseUrl: props.githubBaseUrl ? props.githubBaseUrl : 'https://api.github.com',
+                baseUrl: props.githubBaseUrl
+                    ? props.githubBaseUrl
+                    : 'https://api.github.com',
             });
             const context = github.context;
             const defaultBranch = ((_a = context.payload.repository) === null || _a === void 0 ? void 0 : _a.default_branch) || 'main';
@@ -373,7 +384,7 @@ const mdH3 = (text) => `### ${text}${exports.newLine}`;
 exports.mdH3 = mdH3;
 const mdNote = (text) => `> ${text}${exports.newLine}`;
 exports.mdNote = mdNote;
-const mdList = (texts) => texts.map((text) => `* ${text}`).join(exports.newLine);
+const mdList = (texts) => texts.map((text) => `* ${text}`).join(exports.newLine) + exports.newLine;
 exports.mdList = mdList;
 const mdCodeBlock = (text) => `\`\`\`${exports.newLine}${text}${exports.newLine}\`\`\`${exports.newLine}`;
 exports.mdCodeBlock = mdCodeBlock;

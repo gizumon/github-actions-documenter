@@ -74,7 +74,7 @@ const parseAnnotationComments = (lines: string[]): Annotations => {
   blocks.forEach((block) => {
     if (block.length === 0) return
     const firstLine = block.shift() || ''
-    const annotLine = firstLine.replace(annotationRegExp, '').trim()
+    const annotLine = firstLine?.replace(annotationRegExp, '').trim()
     const annotMap = annotLine.split('=')
     const annotType = annotMap[0] as AnnotationType
     const annotArg = annotMap[1] || ''
@@ -124,5 +124,5 @@ const recursiveFilterAnnotationComments = (
 }
 
 const trimComments = (comments: string[]): string[] => {
-  return comments.map((comment) => comment.replace(commentRegExp, ''))
+  return comments.map((comment) => comment?.replace(commentRegExp, ''))
 }

@@ -6,7 +6,7 @@ import * as core from '@actions/core'
 // TODO: Fix this
 export const log = (msg: string | any): void => {
   // core.debug(msg)
-  console.log(msg)
+  // console.log(msg)
   core.info(msg)
 }
 
@@ -28,4 +28,11 @@ export const ToStringSafe = (str: unknown): string => {
 }
 
 export const toAnchorLink = (str: string): string =>
-  '#' + encodeURIComponent(str.trim().toLocaleLowerCase().replace(/\s/g, '-'))
+  '#' +
+  encodeURIComponent(
+    str
+      .trim()
+      .toLocaleLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^0-9a-zA-Z-]/, '')
+  )

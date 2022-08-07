@@ -50,7 +50,7 @@ const runMain = async (): Promise<void> => {
 
     const result = `${anchorDoc}${headerDoc}${newLine}${agendaDoc}${newLine}${contentDoc}`
     core.setOutput('document', result)
-    core.setOutput('agenda', mdAgenda)
+    core.setOutput('agenda', agendaDoc)
     log('Done generate markdown processes ...')
     log(result)
 
