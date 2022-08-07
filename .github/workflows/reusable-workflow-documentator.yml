@@ -65,10 +65,7 @@ on:
       agenda:
         description: "Reusable workflow agenda"
         value: "${{ jobs.documentation.outputs.agenda }}"
-    secrets:
-      ACCESS_TOKEN:
-        required: true
-        description: "GitHub Personal Access Token"
+
 env:
   GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 jobs:
