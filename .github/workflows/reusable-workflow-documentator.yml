@@ -113,7 +113,7 @@ jobs:
             num=$(grep -n "@overwrite-anchor" ${{ inputs.filepath }} | awk -F ':' '{print $1}' | head -n 1)
             if [ -n "${num}" ]; then
               echo "Remove ${num} line and below ..."
-              sed -e "${num},\$d" ${{ inputs.filepath }} > temp.txt
+              sed -e "$(( ${num} - 1 )),\$d" ${{ inputs.filepath }} > temp.txt
               cp -f temp.txt ${{ inputs.filepath }}
               rm -f temp.txt
             fi
