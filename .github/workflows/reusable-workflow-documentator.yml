@@ -116,10 +116,10 @@ jobs:
           if ${{ inputs.make-pull-request == false }}; then
             if ${{ github.event_name == 'pull_request' }}; then
               echo "push to ${{ github.head_ref }} ... (event:pull_request)"
-              git push origin ${{ github.head_ref }}
+              git push origin HEAD:${{ github.head_ref }}
             else
               echo "push to ${{ github.ref_name }} ... (event:push)"
-              git push origin ${{ github.ref_name }}
+              git push origin HEAD:${{ github.ref_name }}
             fi
           fi
 
