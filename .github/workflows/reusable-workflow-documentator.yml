@@ -1,4 +1,4 @@
-# @example=### Basic example
+# @example=### Example1: Basic example
 # name: "Basic example"
 # on:
 #   pull_request:
@@ -10,7 +10,7 @@
 #     with:
 #       filepath: README.md
 
-# @example=### Advanced example (with GHES support)
+# @example=### Example2: Advanced example (with GHES support)
 # name: "Advanced example"
 # on:
 #   pull_request:
