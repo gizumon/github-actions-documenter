@@ -43,7 +43,7 @@ const runMain = async (): Promise<void> => {
       core.setOutput('result', '')
       return
     }
-    const anchorDoc = props.overwrite ? mdAnchor() : ''
+    const anchorDoc = mdAnchor()
     const headerDoc = mdCommonHeader()
     const contentDoc = mdReusableWorkflows(readYamlResult)
     const agendaDoc = mdAgenda(readYamlResult.workflowCallYamlMap)

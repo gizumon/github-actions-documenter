@@ -3,7 +3,7 @@ import { toAnchorLink, ToStringSafe } from './helpers'
 import { ReuseableWorkflowsYaml, ReuseableWorkflowsYamlFileMap } from './types'
 
 export const newLine = '\n'
-export const divider = '---'
+export const divider = `${newLine}---${newLine}`
 export const tbSeparator = ' | '
 export const positionMap = {
   left: ':---',
@@ -60,8 +60,7 @@ export const mdTableColumn = (row: string[]): string => {
 // Reusable workflows markdown generator
 // =====================================
 
-export const mdAnchor = (): string =>
-  `@over-write-anchor=reusable-workflows-documents${newLine}`
+export const mdAnchor = (): string => `@over-write-anchor${newLine}`
 
 export const mdCommonHeader = (): string => {
   const link = 'https://github.com/gizumon/reusable-workflow-documentator'
