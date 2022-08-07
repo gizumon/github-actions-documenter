@@ -52,7 +52,7 @@ on:
         required: false
         type: boolean
         default: false
-        description: "If true, make a pull request to ref branch. If false, directly push generated doc to ref branch. (default: false)"
+        description: "If true, make a pull request to ref branch. If false, directly push to ref branch. (default: false)"
       # generate-only:
       #   required: false
       #   type: boolean
