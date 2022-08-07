@@ -11,22 +11,22 @@ inputs:
     required: true
     default: "README.md"
     description: 'Filepath to write the reusable workflow documentation. (default: README.md)'
-  overwrite:
-    required: false
-    default: "false"
-    description: 'If true, overwrite the filepath file. (default: false)'
-  make-pull-request:
-    required: false
-    default: "false"
-    description: 'If true, make a pull request to ref branch. If false, directly push generated doc to ref branch. (default: false)'
-  generate-only:
-    required: false
-    default: "false"
-    description: 'Generate document and set output result only. (default: false)'
   github-base-url:
     required: false
     default: "https://api.github.com"
     description: 'GitHub Host domain (Support for GitHub Enterprise)'
+  # overwrite:
+  #   required: false
+  #   default: "false"
+  #   description: 'If true, overwrite the filepath file. (default: false)'
+  # make-pull-request:
+  #   required: false
+  #   default: "false"
+  #   description: 'If true, make a pull request to ref branch. If false, directly push generated doc to ref branch. (default: false)'
+  # generate-only:
+  #   required: false
+  #   default: "false"
+  #   description: 'Generate document and set output result only. (default: false)'
 
 outputs:
   document:

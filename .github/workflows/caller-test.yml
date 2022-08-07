@@ -7,8 +7,9 @@ jobs:
   test:
     uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
     with:
-      filepath: .github/docs/reusable-workflow-doc.md
-      overwrite: true
+      # filepath: .github/docs/reusable-workflow-doc.md
+      filepath: README.md
+      overwrite: false
       make-pull-request: true
     secrets:
       ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
