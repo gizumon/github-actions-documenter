@@ -285,7 +285,7 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
             core.setOutput('result', '');
             return;
         }
-        const anchorDoc = (0, markdown_1.mdAnchor)();
+        const anchorDoc = props.overwrite ? (0, markdown_1.mdAnchor)() : '';
         const headerDoc = (0, markdown_1.mdCommonHeader)();
         const contentDoc = (0, markdown_1.mdReusableWorkflows)(readYamlResult);
         const agendaDoc = (0, markdown_1.mdAgenda)(readYamlResult.workflowCallYamlMap);
@@ -346,8 +346,9 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
             }
             else {
                 // If make-pull-request is false, then push the changes to the head branch.
+                exec.exec('git', ['pull']);
                 exec.exec('git', ['push', 'origin', headBranch]);
-                (0, helpers_1.log)('Success create pull request');
+                (0, helpers_1.log)('Success push commit to ' + headBranch);
             }
         }
     }
