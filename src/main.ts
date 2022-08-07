@@ -107,7 +107,6 @@ const runMain = async (): Promise<void> => {
         }
       } else {
         // If make-pull-request is false, then push the changes to the head branch.
-        exec.exec('git', ['pull'])
         exec.exec('git', ['push', 'origin', headBranch])
         log('Success push commit to ' + headBranch)
       }

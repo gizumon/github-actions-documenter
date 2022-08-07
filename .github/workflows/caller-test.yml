@@ -9,5 +9,6 @@ jobs:
     with:
       filepath: .github/docs/reusable-workflow-doc.md
       overwrite: true
+      make-pull-request: true
     secrets:
       ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
