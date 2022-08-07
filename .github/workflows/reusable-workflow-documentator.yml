@@ -107,6 +107,7 @@ jobs:
           git fetch
           git checkout -B ${{ steps.branch.outputs.name }} origin/${{ steps.branch.outputs.name }}
           if ${{ inputs.overwrite }}; then
+            echo "Overwrite ${{ inputs.filepath }} file ..."
             echo '${{ steps.documentator.outputs.document }}' > ${{ inputs.filepath }}
           else
             num=$(grep -n "@overwrite-anchor" ${{ inputs.filepath }} | awk -F ':' '{print $1}' | head -n 1)
