@@ -34,7 +34,7 @@ const runMain = async (): Promise<void> => {
     log('Run reusable-workflow-documentator ...')
 
     const props: Props = getProps()
-    log(`props: ${String(props)} ...`)
+    log(`props: ${JSON.stringify(props)} ...`)
 
     // read yml file
     const readYamlResult = readYamls()
@@ -54,8 +54,10 @@ const runMain = async (): Promise<void> => {
     log('Done generate markdown processes ...')
     log(result)
 
-    const token = process.env.GITHUB_TOKEN
+    const token = process.env.GITHUB_TOKEN || ''
+    log('token: ' + token)
     if (token && !props.generateOnly) {
+      log('Run result commit and push...')
       exec.exec('echo', [
         result,
         props.overwrite ? '>' : '>>',

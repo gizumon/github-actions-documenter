@@ -145,7 +145,7 @@ found = false // found annotation comment in previous line
     return recursiveFilterAnnotationComments(lines, commentsBlocks, false);
 };
 const trimComments = (comments) => {
-    return comments.map(comment => comment === null || comment === void 0 ? void 0 : comment.replace(commentRegExp, ''));
+    return comments.map((comment) => comment === null || comment === void 0 ? void 0 : comment.replace(commentRegExp, ''));
 };
 
 
@@ -277,7 +277,7 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         (0, helpers_1.log)('Run reusable-workflow-documentator ...');
         const props = getProps();
-        (0, helpers_1.log)(`props: ${String(props)} ...`);
+        (0, helpers_1.log)(`props: ${JSON.stringify(props)} ...`);
         // read yml file
         const readYamlResult = (0, fs_1.readYamls)();
         if (Object.keys(readYamlResult.workflowCallYamlMap).length === 0) {
@@ -294,8 +294,10 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
         core.setOutput('agenda', agendaDoc);
         (0, helpers_1.log)('Done generate markdown processes ...');
         (0, helpers_1.log)(result);
-        const token = process.env.GITHUB_TOKEN;
+        const token = process.env.GITHUB_TOKEN || '';
+        (0, helpers_1.log)('token: ' + token);
         if (token && !props.generateOnly) {
+            (0, helpers_1.log)('Run result commit and push...');
             exec.exec('echo', [
                 result,
                 props.overwrite ? '>' : '>>',
