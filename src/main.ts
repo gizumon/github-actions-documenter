@@ -65,7 +65,8 @@ const runMain = async (): Promise<void> => {
       ])
       exec.exec('git', ['config', 'user.name', 'GitHub Action Documentator'])
       exec.exec('git', ['config', 'user.email', 'github-action.com'])
-      exec.exec('git', ['add', '.'])
+      log(await exec.getExecOutput('git', ['status']))
+      exec.exec('git', ['add', props.documentPath])
       exec.exec('git', ['commit', '-m', 'Update reusable workflows document'])
       const octokit = github.getOctokit(token, {
         baseUrl: props.githubBaseUrl
@@ -74,24 +75,26 @@ const runMain = async (): Promise<void> => {
       })
       const context = github.context
 
-      const defaultBranch = context.payload.repository?.default_branch || 'main'
+      // const defaultBranch = context.payload.repository?.default_branch || 'main'
       const owner = context.repo.owner
       const repo = context.repo.repo
       const headBranch = context.ref.replace('refs/heads/', '')
-      const baseBranch = context.payload.pull_request
-        ? context.payload.pull_request.base.ref
-        : defaultBranch
+      // const baseBranch = context.payload.pull_request
+      //   ? context.payload.pull_request.base.ref
+      //   : defaultBranch
 
       if (props.shouldMakePullRequest) {
         // if make-pull-request is true, create a pull request
         try {
+          const prBranch = `feature/reusable-workflow-documentator-${Date.now()}`
+          exec.exec('git', ['push', 'origin', prBranch])
           const pullRequest = await octokit.rest.pulls.create({
             owner,
             repo,
             title: '📝 Reusable Workflows Document',
             body: result,
-            head: headBranch,
-            base: baseBranch,
+            head: prBranch,
+            base: headBranch, // pr from prBranch to baseBranch
           })
           if (pullRequest.status < 300) {
             log('Success create pull request')
