@@ -48,7 +48,7 @@ const runMain = async (): Promise<void> => {
     const contentDoc = mdReusableWorkflows(readYamlResult)
     const agendaDoc = mdAgenda(readYamlResult.workflowCallYamlMap)
 
-    const result = `${anchorDoc}${headerDoc}${newLine}${agendaDoc}${newLine}${contentDoc}`
+    const result = `${newLine}${anchorDoc}${headerDoc}${newLine}${agendaDoc}${newLine}${contentDoc}`
     core.setOutput('document', result)
     core.setOutput('agenda', agendaDoc)
     log('Done generate markdown processes ...')

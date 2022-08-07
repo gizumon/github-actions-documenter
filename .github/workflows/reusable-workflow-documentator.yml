@@ -119,4 +119,4 @@ jobs:
           title: "📝 Auto generated reusable workflow documentation"
           branch-suffix: timestamp
           commit-message: "⚙ Commit by Reusable workflow documentator"
-          body: "Generated document ↓\n---\n${{ steps.documentator.outputs.document }}"
+          body: 'Generated document ↓\n---\n${{ steps.documentator.outputs.document }}'
