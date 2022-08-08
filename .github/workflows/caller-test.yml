@@ -1,5 +1,11 @@
 name: "Caller Test"
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'action.yml'
+      - '.github/workflows/*.yml'
   pull_request:
     paths:
       - '.github/workflows/*.yml'

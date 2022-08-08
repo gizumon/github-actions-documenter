@@ -1,6 +1,6 @@
 {
-  "name": "resuable-workflow-documentator",
-  "version": "0.0.0",
+  "name": "github-actions-documenter",
+  "version": "0.0.1",
   "private": true,
   "description": "Auto documentation for Resuable Wrokflow",
   "main": "lib/main.js",
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gizumon/resuable-workflow-documentator.git"
+    "url": "git+https://github.com/gizumon/github-actions-documenter.git"
   },
   "keywords": [
     "actions",

@@ -6,7 +6,7 @@
 #       - '.github/workflows/*.yml'
 # jobs:
 #   test:
-#     uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
+#     uses: gizumon/github-actions-documenter/.github/workflows/reusable-workflow-documentator.yml@main
 #     with:
 #       filepath: README.md
 
@@ -18,18 +18,17 @@
 #       - '.github/workflows/*.yml'
 # jobs:
 #   test:
-#     uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
+#     uses: gizumon/github-actions-documenter/.github/workflows/reusable-workflow-documentator.yml@main
 #     with:
 #       filepath: .github/docs/reusable-workflow-doc.md
 #       overwrite: true
 #       make-pull-request: true
-#       github-base-url: "https://some-enterprise.github.com/api/v3"
 
 # @note=### Support events
 # - push
 # - pull_request
 
-name: Reusable Workflow Documentator
+name: GitHub Actions Document Generator
 on:
   workflow_call:
     inputs:
@@ -38,11 +37,6 @@ on:
         type: string
         default: README.md
         description: "Filepath to write the generated reusable workflow document. (default: README.md)"
-      github-base-url:
-        type: string
-        required: false
-        default: "https://api.github.com"
-        description: "GitHub Host domain (Support for GitHub Enterprise) (default: https://api.github.com)"
       overwrite:
         required: false
         type: boolean
@@ -53,6 +47,11 @@ on:
         type: boolean
         default: false
         description: "If true, make a pull request to ref branch. If false, directly push to ref branch. (default: false)"
+      # github-base-url:
+      #   type: string
+      #   required: false
+      #   default: "https://api.github.com"
+      #   description: "GitHub Host domain (Support for GitHub Enterprise) (default: https://api.github.com)"
       # generate-only:
       #   required: false
       #   type: boolean
@@ -71,7 +70,7 @@ env:
 jobs:
   documentation:
     name: Generate reusable workflow document
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       document: ${{ steps.documentator.outputs.document }}
       agenda: ${{ steps.documentator.outputs.agenda }}
@@ -79,13 +78,13 @@ jobs:
       - uses: actions/checkout@v2
       - name: Reusable Workflow Documentator Action
         id: documentator
-        uses: ./
-        with:
-          filepath: ${{ inputs.filepath }}
-          github-base-url: ${{ inputs.github-base-url }}
-          # overwrite: ${{ inputs.overwrite }}
-          # make-pull-request: ${{ inputs.make-pull-request }}
-          # generate-only: ${{ inputs.generate-only }}
+        uses: gizumon/reusable-workflow-documentator@main
+        # with:
+        #   filepath: ${{ inputs.filepath }}
+        #   github-base-url: ${{ inputs.github-base-url }}
+        #   overwrite: ${{ inputs.overwrite }}
+        #   make-pull-request: ${{ inputs.make-pull-request }}
+        #   generate-only: ${{ inputs.generate-only }}
 
       - name: Get branch name
         id: branch
@@ -97,7 +96,7 @@ jobs:
             echo "branch name is ${{ github.ref_name }} ... (event:push)"
             echo "::set-output name=name::${{ github.ref_name }}"
           fi
-          
+
       - name: Add a new file
         id: changes
         run: |

@@ -16,14 +16,14 @@ import { log } from './helpers'
 
 interface Props {
   overwrite: boolean
-  documentPath: string
+  output: string
   generateOnly?: boolean
   githubBaseUrl?: string
   shouldMakePullRequest?: boolean
 }
 const getProps = (): Props => ({
   overwrite: core.getInput('overwrite') === 'true',
-  documentPath: core.getInput('filepath'),
+  output: core.getInput('output-filepath'),
   generateOnly: core.getInput('generate-only') === 'true',
   githubBaseUrl: core.getInput('github-base-url'),
   shouldMakePullRequest: core.getInput('make-pull-request') === 'true',
@@ -31,7 +31,7 @@ const getProps = (): Props => ({
 
 const runMain = async (): Promise<void> => {
   try {
-    log('Run reusable-workflow-documentator ...')
+    log('Run github-actions-documenter ...')
 
     const props: Props = getProps()
     log(`props: ${JSON.stringify(props)} ...`)
@@ -73,7 +73,7 @@ const runMain = async (): Promise<void> => {
     //   exec.exec('git', ['config', 'user.name', 'GitHub Action Documentator'])
     //   exec.exec('git', ['config', 'user.email', 'github-action.com'])
     //   log(await exec.getExecOutput('git', ['status']))
-    //   exec.exec('git', ['add', props.documentPath])
+    //   exec.exec('git', ['add', props.filePath])
     //   exec.exec('git', ['commit', '-m', 'Update reusable workflows document'])
     //   const octokit = github.getOctokit(token, {
     //     baseUrl: props.githubBaseUrl
