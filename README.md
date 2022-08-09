@@ -41,8 +41,32 @@ For the additional documentation, this feature supports comment annotation featu
 
 # 🔰 Reusable Workflows Usage 🔰
 
+* [1: GitHub Actions Document Generator](#1-github-actions-document-generator) ( [📄](action.yml) )
+
+## 1: GitHub Actions Document Generator
+### Basic example
+
+```
+ steps:
+   - id: documentator
+     name: "Generate document"
+     uses: gizumon/github-actions-documenter/.github/workflows/github-actions-documenter.yml@main
+```
+
+Auto documentation for Github Actions workflows
+
+`using: node16`
 
 
+### Outputs
+
+| # | Name | Description |
+| :--- | :--- | :--- |
+| 1 | output | GitHub Actions markdown documents including Custom Actions and Reusable Workflows |
+| 2 | agenda-ca | Agenda for Custom Actions markdown documents |
+| 3 | output-ca | Custom Actions markdown documents |
+| 4 | agenda-rw | Agenda for Reusable Workflows markdown documents |
+| 5 | output-rw | Reusable Workflows markdown documents |
 
 * [1: GitHub Actions Document Generator](#1-github-actions-document-generator) ( [📄](.github/workflows/github-actions-documenter.yml) )
 
