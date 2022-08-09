@@ -6,7 +6,7 @@
 #       - '.github/workflows/*.yml'
 # jobs:
 #   test:
-#     uses: gizumon/github-actions-documenter/.github/workflows/github-actions-documenter.yml@main
+#     uses: gizumon/github-actions-documaker/.github/workflows/documentation.yml@main
 #     with:
 #       filepath: README.md
 
@@ -18,7 +18,7 @@
 #       - '.github/workflows/*.yml'
 # jobs:
 #   test:
-#     uses: gizumon/github-actions-documenter/.github/workflows/github-actions-documenter.yml@main
+#     uses: gizumon/github-actions-documaker/.github/workflows/documentation.yml@main
 #     with:
 #       filepath: .github/docs/reusable-workflow-doc.md
 #       overwrite: true
