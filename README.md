@@ -28,7 +28,7 @@ For the additional documentation, this feature supports comment annotation featu
   * [Annotation Comment](.github/workflows/github-actions-documenter.yml)
   * [Generated document](#-reusable-workflows-usage-)
 
-# 🔰 Actions Usage　🔰
+# 🔰 Custom Actions Usage　🔰
 
 ## GitHub Actions Document Generator
 

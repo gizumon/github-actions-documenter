@@ -70,7 +70,7 @@ env:
 jobs:
   documentation:
     name: Generate reusable workflow document
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     outputs:
       document: ${{ steps.documentator.outputs.document }}
       agenda: ${{ steps.documentator.outputs.agenda }}
