@@ -33,26 +33,6 @@ For the additional documentation, this feature supports comment annotation featu
 
 @overwrite-anchor
 
-# 🔰 Custom Actions Usage　🔰
-
-## GitHub Actions Document Generator
-
-> Support only output markdown document for now. Will support file edit and commit.
-> If you want to edit and commit a generated document, please refer to [this file](.github/workflows/github-actions-documenter.yml) for actual usage.
-
-### Basic Example
-
-```yml
-uses: gizumon/github-actions-documenter@main
-```
-
-### Outputs
-
-| # | Name | Description |
-| :--- | :--- | :--- |
-| 1 | document | Reusable workflow markdown document |
-| 2 | agenda | Reusable workflow agenda |
-
 ---
 
 > 🚀 Generated automatically by [github-actions-documenter](https://github.com/gizumon/github-actions-documenter) 🚀
@@ -60,6 +40,9 @@ uses: gizumon/github-actions-documenter@main
 
 
 # 🔰 Reusable Workflows Usage 🔰
+
+
+
 
 * [1: GitHub Actions Document Generator](#1-github-actions-document-generator) ( [📄](.github/workflows/github-actions-documenter.yml) )
 
@@ -108,12 +91,11 @@ uses: gizumon/github-actions-documenter@main
 
 | # | Name | Description |
 | :--- | :--- | :--- |
-| 1 | document | Reusable workflow markdown document |
-| 2 | agenda | Reusable workflow agenda |
-
+| 1 | output | GitHub Actions markdown document (Reusable Workflow and Custom Actions) |
 
 ### Support events
 
  - push
  - pull_request
+
 
