@@ -59,9 +59,9 @@ uses: gizumon/github-actions-documenter@main
 
 # 🔰 Reusable Workflows Usage 🔰
 
-* [Reusable Workflow Documentator](#1-github-actions-documenter) ( [📄](.github/workflows/github-actions-documenter.yml) )
+* [1: GitHub Actions Document Generator](#1-github-actions-document-generator) ( [📄](.github/workflows/github-actions-documenter.yml) )
 
-## 1: Reusable Workflow Documentator
+## 1: GitHub Actions Document Generator
 ### Example1: Basic example
 
 ```
@@ -92,7 +92,6 @@ uses: gizumon/github-actions-documenter@main
        filepath: .github/docs/reusable-workflow-doc.md
        overwrite: true
        make-pull-request: true
-       github-base-url: "https://some-enterprise.github.com/api/v3"
 ```
 
 ### Inputs
@@ -100,9 +99,8 @@ uses: gizumon/github-actions-documenter@main
 | # | Required | Type | Name | Default | Description |
 | :--- | :---: | :---: | :--- | :--- | :--- |
 | 1 | ✅ | string | filepath | README.md | Filepath to write the generated reusable workflow document. (default: README.md) |
-| 2 |  | string | github-base-url | https://api.github.com | GitHub Host domain (Support for GitHub Enterprise) (default: https://api.github.com) |
-| 3 |  | boolean | overwrite | false | If true, overwrite the filepath file. (default: false) |
-| 4 |  | boolean | make-pull-request | false | If true, make a pull request to ref branch. If false, directly push to ref branch. (default: false) |
+| 2 |  | boolean | overwrite | false | If true, overwrite the filepath file. (default: false) |
+| 3 |  | boolean | make-pull-request | false | If true, make a pull request to ref branch. If false, directly push to ref branch. (default: false) |
 
 ### Outputs
 
