@@ -55,7 +55,7 @@ const runMain = async (): Promise<void> => {
     const rwAgendaDoc = mdAgenda(readYamlResult.workflowCallYamlMap)
     const ca = `${caTitle}${newLine}${caAgendaDoc}${newLine}${caDoc}`
     const rw = `${rwTitle}${newLine}${rwAgendaDoc}${newLine}${rwDoc}`
-    const result = `${newLine}${headerDoc}${ca}${rw}${footerDoc}`
+    const result = `${newLine}${headerDoc}${ca}${newLine}${rw}${footerDoc}`
     core.setOutput('output', result)
     core.setOutput('output-ca', caDoc)
     core.setOutput('agenda-ca', caAgendaDoc)

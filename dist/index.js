@@ -349,7 +349,7 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
         const rwAgendaDoc = (0, markdown_1.mdAgenda)(readYamlResult.workflowCallYamlMap);
         const ca = `${caTitle}${markdown_1.newLine}${caAgendaDoc}${markdown_1.newLine}${caDoc}`;
         const rw = `${rwTitle}${markdown_1.newLine}${rwAgendaDoc}${markdown_1.newLine}${rwDoc}`;
-        const result = `${markdown_1.newLine}${headerDoc}${ca}${rw}${footerDoc}`;
+        const result = `${markdown_1.newLine}${headerDoc}${ca}${markdown_1.newLine}${rw}${footerDoc}`;
         core.setOutput('output', result);
         core.setOutput('output-ca', caDoc);
         core.setOutput('agenda-ca', caAgendaDoc);
@@ -552,9 +552,9 @@ const mdCustomAction = (num = 1, obj, annotationObj = { example: [], note: [] })
             case 'name':
                 return (0, exports.mdH2)(`${num}: ${obj[key]}`);
             case 'runs':
-                return (0, exports.mdCustomActionsRuns)(obj[key]) + exports.newLine + examplesDoc;
+                return (0, exports.mdCustomActionsRuns)(obj[key]);
             case 'description':
-                return (0, exports.mdRaw)(obj[key]);
+                return (0, exports.mdRaw)(obj[key]) + exports.newLine + examplesDoc;
             case 'inputs':
                 return (0, exports.mdCustomActionsInputs)(obj[key]);
             case 'outputs':

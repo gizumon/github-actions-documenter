@@ -138,9 +138,9 @@ export const mdCustomAction = (
         case 'name':
           return mdH2(`${num}: ${obj[key]}`)
         case 'runs':
-          return mdCustomActionsRuns(obj[key]) + newLine + examplesDoc
+          return mdCustomActionsRuns(obj[key])
         case 'description':
-          return mdRaw(obj[key])
+          return mdRaw(obj[key]) + newLine + examplesDoc
         case 'inputs':
           return mdCustomActionsInputs(obj[key])
         case 'outputs':
