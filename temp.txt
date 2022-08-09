@@ -1,0 +1,34 @@
+<p align="center">
+  <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
+</p>
+
+# GitHub Actions Documenter
+
+Auto generate github actions document from yml file.
+
+## Support actions
+
+* [Reusable Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows)
+* [Custom Actions](https://docs.github.com/en/actions/creating-actions/about-custom-actions)
+  * Composite Actions
+  * Docker Container Actions
+  * Javascript Actions
+
+## How to use
+
+1. Make an awesome reusable workflow on your repository
+2. Set reusable workflow in your repository
+   * You can use [this workflow](#-reusable-workflows-usage-) and just call it to complete the setup.
+
+For the additional documentation, this feature supports comment annotation features in your workflow file.
+
+|#|Annotation|value|description|
+|:---:|:---|:---|:---|
+|1|@example|title with markdown value (e.g. ### Title)|`@example` can make examples with a code block and insert those comments under the each workflow title.|
+|1|@note|title with markdown value (e.g. ### Title)|`@note` can make notes with a raw markdown and insert those comments at the bottom of the generated document.|
+
+* You can find an example from the followings.
+  * [Annotation Comment](.github/workflows/github-actions-documenter.yml)
+  * [Generated document](#-reusable-workflows-usage-)
+
+`Please add document`

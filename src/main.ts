@@ -9,7 +9,7 @@ import {
   mdCustomActions,
   mdReusableWorkflows,
   newLine,
-  mdAnchor,
+  mdFooter,
   mdAgenda,
   mdH1,
 } from './markdown'
@@ -45,8 +45,8 @@ const runMain = async (): Promise<void> => {
       core.setOutput('result', '')
       return
     }
-    const anchorDoc = mdAnchor()
     const headerDoc = mdCommonHeader()
+    const footerDoc = mdFooter()
     const caTitle = mdH1('🔰 Custom Actions Usage 🔰')
     const caDoc = mdCustomActions(readYamlResult)
     const caAgendaDoc = mdAgenda(readYamlResult.customActionsYaml)
@@ -55,7 +55,7 @@ const runMain = async (): Promise<void> => {
     const rwAgendaDoc = mdAgenda(readYamlResult.workflowCallYamlMap)
     const ca = `${caTitle}${newLine}${caAgendaDoc}${newLine}${caDoc}`
     const rw = `${rwTitle}${newLine}${rwAgendaDoc}${newLine}${rwDoc}`
-    const result = `${newLine}${anchorDoc}${headerDoc}${ca}${rw}`
+    const result = `${newLine}${headerDoc}${ca}${rw}${footerDoc}`
     core.setOutput('output', result)
     core.setOutput('output-ca', caDoc)
     core.setOutput('agenda-ca', caAgendaDoc)

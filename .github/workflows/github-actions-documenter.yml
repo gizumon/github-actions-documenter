@@ -102,10 +102,15 @@ jobs:
             echo "Overwrite ${{ inputs.filepath }} file ..."
             echo '${{ steps.documentator.outputs.output }}' > ${{ inputs.filepath }}
           else
-            num=$(grep -n "@overwrite-anchor" ${{ inputs.filepath }} | awk -F ':' '{print $1}' | head -n 1)
-            if [ -n "${num}" ]; then
-              echo "Remove ${num} line and below ..."
-              sed -e "$(( ${num} - 1 )),\$d" ${{ inputs.filepath }} > temp.txt
+            startN=$(grep -n "@overwrite-anchor=start" ${{ inputs.filepath }} | awk -F ':' '{print $1}' | head -n 1)
+            endN=$(grep -n "@overwrite-anchor=end" ${{ inputs.filepath }} | awk -F ':' '{print $1}' | head -n 1)
+            if [ -n "${startN}" ]; then
+              echo "Remove from ${startN} line to ${endN} line ..."
+              if [ -n "${endN}" ]; then
+                sed -e "$(( ${startN} - 1 )),${endN}d" ${{ inputs.filepath }} > temp.txt
+              else
+                sed -e "$(( ${startN} - 1 )),\$d" ${{ inputs.filepath }} > temp.txt
+              fi
               cp -f temp.txt ${{ inputs.filepath }}
               rm -f temp.txt
             fi
