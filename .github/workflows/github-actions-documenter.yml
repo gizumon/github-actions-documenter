@@ -136,7 +136,7 @@ jobs:
         if: ${{ (steps.changes.outputs.count > 0) && (inputs.make-pull-request == true) }}
         uses: peter-evans/create-pull-request@v3
         with:
-          title: "📝 Auto generated reusable workflow documentation"
+          title: "📝 Auto generated GitHub Actions documentation"
           branch-suffix: timestamp
           commit-message: "⚙ Updated ${{ inputs.filepath }} by github-actions-documenter"
           body: 'Generated document ↓\n---\n${{ steps.documentator.outputs.output }}'
