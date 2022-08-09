@@ -130,3 +130,56 @@ export interface ReuseableWorkflowsYaml {
     }[]
   }
 }
+
+export interface CustomActionsYamlFileMap {
+  [key: string]: CustomActionsYaml
+}
+
+export interface CustomActionsYaml {
+  name: string
+  description: string
+  branding?: {
+    color: string
+    icon: string
+    logo: string
+  }
+  runs: CustomJSActions | CustomCompositeActions | CustomDockerActions
+  inputs?: CustomActionsInputs
+  outputs?: CustomActionsOutputs
+}
+
+export interface CustomActionsInputs {
+  [key: string]: {
+    description: string
+    deprecationMessage?: string
+    required: boolean
+    default?: string
+  }
+}
+
+interface CustomActionsOutputs {
+  [key: string]: {
+    description: string
+  }
+}
+
+export interface CustomJSActions {
+  using: string
+  pre?: string
+  'pre-if'?: string
+  main: string
+}
+
+export interface CustomCompositeActions {
+  using: string
+  steps: {
+    [key: string]: any
+  }
+  [key: string]: any
+}
+
+export interface CustomDockerActions {
+  using: string
+  image: string
+  [key: string]: any
+}

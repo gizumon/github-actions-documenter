@@ -29,10 +29,16 @@ branding:
   #   description: 'Generate document and set output result only. (default: false)'
 
 outputs:
-  agenda:
-    description: 'Agenda'
-  reusable-doc:
-    description: 'Manual'
+  output:
+     description: 'GitHub Actions markdown documents including Custom Actions and Reusable Workflows'
+  agenda-ca:
+    description: 'Agenda for Custom Actions markdown documents'
+  output-ca:
+    description: 'Custom Actions markdown documents'
+  agenda-rw:
+    description: 'Agenda for Reusable Workflows markdown documents'
+  output-rw:
+    description: 'Reusable Workflows markdown documents'
 
 runs:
   using: 'node16'

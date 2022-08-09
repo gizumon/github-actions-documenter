@@ -9,7 +9,10 @@ Auto generate github actions document from yml file.
 ## Support actions
 
 * [Reusable Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows)
-* `WIP:` [Custom Actions](https://docs.github.com/en/actions/creating-actions/about-custom-actions)
+* [Custom Actions](https://docs.github.com/en/actions/creating-actions/about-custom-actions)
+  * Composite Actions
+  * Docker Container Actions
+  * Javascript Actions
 
 ## How to use
 
@@ -27,6 +30,8 @@ For the additional documentation, this feature supports comment annotation featu
 * You can find an example from the followings.
   * [Annotation Comment](.github/workflows/github-actions-documenter.yml)
   * [Generated document](#-reusable-workflows-usage-)
+
+@overwrite-anchor
 
 # 🔰 Custom Actions Usage　🔰
 
@@ -47,9 +52,6 @@ uses: gizumon/github-actions-documenter@main
 | :--- | :--- | :--- |
 | 1 | document | Reusable workflow markdown document |
 | 2 | agenda | Reusable workflow agenda |
-
-
-@overwrite-anchor
 
 ---
 

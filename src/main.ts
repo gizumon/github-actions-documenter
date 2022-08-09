@@ -6,6 +6,7 @@ import * as core from '@actions/core'
 
 import {
   mdCommonHeader,
+  mdCustomActions,
   mdReusableWorkflows,
   newLine,
   mdAnchor,
@@ -45,12 +46,17 @@ const runMain = async (): Promise<void> => {
     }
     const anchorDoc = mdAnchor()
     const headerDoc = mdCommonHeader()
-    const contentDoc = mdReusableWorkflows(readYamlResult)
-    const agendaDoc = mdAgenda(readYamlResult.workflowCallYamlMap)
+    const caDoc = mdCustomActions(readYamlResult)
+    const rwDoc = mdReusableWorkflows(readYamlResult)
+    const caAgendaDoc = mdAgenda(readYamlResult.customActionsYaml)
+    const rwAgendaDoc = mdAgenda(readYamlResult.workflowCallYamlMap)
 
-    const result = `${newLine}${anchorDoc}${headerDoc}${newLine}${agendaDoc}${newLine}${contentDoc}`
-    core.setOutput('document', result)
-    core.setOutput('agenda', agendaDoc)
+    const result = `${newLine}${anchorDoc}${headerDoc}${newLine}${caAgendaDoc}${newLine}${caDoc}${newLine}${rwAgendaDoc}${newLine}${rwDoc}${newLine}`
+    core.setOutput('output', result)
+    core.setOutput('output-ca', caDoc)
+    core.setOutput('output-rw', rwDoc)
+    core.setOutput('agenda-ca', caAgendaDoc)
+    core.setOutput('agenda-rw', rwAgendaDoc)
     log('Done generate markdown processes ...')
     log(result)
 

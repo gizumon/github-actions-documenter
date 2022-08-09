@@ -10,6 +10,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const constants = {
     anchorAnnotation: '@overwrite-anchor',
     workflowsDir: './.github/workflows/',
+    rootDir: './',
 };
 exports.default = constants;
 
@@ -48,7 +49,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.readYamls = void 0;
+exports.recursiveReadCustomActions = exports.readYamls = void 0;
 const fs = __importStar(__nccwpck_require__(5747));
 const constants_1 = __importDefault(__nccwpck_require__(9349));
 const path = __importStar(__nccwpck_require__(5622));
@@ -57,7 +58,18 @@ const helpers_1 = __nccwpck_require__(6682);
 const markdown_1 = __nccwpck_require__(7213);
 const commentRegExp = /^\s*#/;
 const annotationRegExp = /^\s*#\s*@/;
+const actionsYamlRegExp = /^actions\.ya?ml$/;
 const readYamls = () => {
+    const { workflowCallYamlMap, annotationMap } = readReuseableWorkflowsYaml();
+    const { customActionsYaml, annotationMap: annotationMap2 } = readCustomActionsYaml();
+    return {
+        customActionsYaml,
+        workflowCallYamlMap,
+        annotationMap: Object.assign(Object.assign({}, annotationMap), annotationMap2),
+    };
+};
+exports.readYamls = readYamls;
+const readReuseableWorkflowsYaml = () => {
     const workflowCallYamlMap = {};
     const annotationMap = {};
     fs.readdirSync(constants_1.default.workflowsDir).forEach((fName) => {
@@ -71,13 +83,11 @@ const readYamls = () => {
             const actualLines = lines.filter((l) => !commentRegExp.test(l));
             // parse yaml file and filter workflow calls
             const doc = yaml.load(actualLines.join(markdown_1.newLine));
-            if (isWorkflowCall(doc)) {
-                (0, helpers_1.log)('File is a valid workflow_call yml file: ' + fName);
-                workflowCallYamlMap[fPath] = doc;
-                // parse annotation comments
-                const annotations = parseAnnotationComments(lines);
-                annotationMap[fPath] = annotations;
-            }
+            if (!isWorkflowCall(doc))
+                return;
+            (0, helpers_1.log)('File is a valid workflow_call yml file: ' + fName);
+            workflowCallYamlMap[fPath] = doc;
+            annotationMap[fPath] = parseAnnotationComments(lines);
             return;
         }
         catch (e) {
@@ -91,7 +101,6 @@ const readYamls = () => {
         annotationMap,
     };
 };
-exports.readYamls = readYamls;
 const isWorkflowCall = (obj) => {
     if (obj.on && obj.on.workflow_call)
         return true;
@@ -148,6 +157,49 @@ found = false // found annotation comment in previous line
 const trimComments = (comments) => {
     return comments.map((comment) => comment === null || comment === void 0 ? void 0 : comment.replace(commentRegExp, ''));
 };
+const readCustomActionsYaml = () => (0, exports.recursiveReadCustomActions)(constants_1.default.rootDir);
+const recursiveReadCustomActions = (dir, yamlMap = {
+    customActionsYaml: {},
+    annotationMap: {},
+}) => {
+    const dirs = [];
+    const customActionsMap = {};
+    const annotationMap = {};
+    fs.readdirSync(dir, { withFileTypes: true }).forEach((dirent) => {
+        const fPath = `${dir}/${dirent.name}`;
+        // if directory, recursively read its files
+        if (dirent.isDirectory())
+            dirs.push(fPath);
+        if (!dirent.isFile())
+            return; // skip if not a file
+        if (!actionsYamlRegExp.test(dirent.name))
+            return; // skip if not a yaml file
+        try {
+            const file = fs.readFileSync(fPath, 'utf-8');
+            const lines = file.split(markdown_1.newLine);
+            const actualLines = lines.filter((l) => !commentRegExp.test(l));
+            const doc = yaml.load(actualLines.join(markdown_1.newLine));
+            if (isCustomActions(doc))
+                return;
+            (0, helpers_1.log)('File is a valid Custom Actions file: ' + fPath);
+            annotationMap[fPath] = parseAnnotationComments(lines);
+            customActionsMap[fPath] = doc;
+        }
+        catch (e) {
+            (0, helpers_1.log)('File is not a valid yml file: ' + fPath);
+            (0, helpers_1.log)(e instanceof Error ? e.message : e);
+        }
+    });
+    dirs.forEach((d) => {
+        yamlMap = (0, exports.recursiveReadCustomActions)(d, {
+            customActionsYaml: Object.assign(Object.assign({}, yamlMap.customActionsYaml), customActionsMap),
+            annotationMap: Object.assign(Object.assign({}, yamlMap.annotationMap), annotationMap),
+        });
+    });
+    return yamlMap;
+};
+exports.recursiveReadCustomActions = recursiveReadCustomActions;
+const isCustomActions = (obj) => ['name', 'description', 'runs'].every((key) => obj[key] !== undefined);
 
 
 /***/ }),
@@ -287,11 +339,16 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
         }
         const anchorDoc = (0, markdown_1.mdAnchor)();
         const headerDoc = (0, markdown_1.mdCommonHeader)();
-        const contentDoc = (0, markdown_1.mdReusableWorkflows)(readYamlResult);
-        const agendaDoc = (0, markdown_1.mdAgenda)(readYamlResult.workflowCallYamlMap);
-        const result = `${markdown_1.newLine}${anchorDoc}${headerDoc}${markdown_1.newLine}${agendaDoc}${markdown_1.newLine}${contentDoc}`;
-        core.setOutput('document', result);
-        core.setOutput('agenda', agendaDoc);
+        const caDoc = (0, markdown_1.mdCustomActions)(readYamlResult);
+        const rwDoc = (0, markdown_1.mdReusableWorkflows)(readYamlResult);
+        const caAgendaDoc = (0, markdown_1.mdAgenda)(readYamlResult.customActionsYaml);
+        const rwAgendaDoc = (0, markdown_1.mdAgenda)(readYamlResult.workflowCallYamlMap);
+        const result = `${markdown_1.newLine}${anchorDoc}${headerDoc}${markdown_1.newLine}${caAgendaDoc}${markdown_1.newLine}${caDoc}${markdown_1.newLine}${rwAgendaDoc}${markdown_1.newLine}${rwDoc}${markdown_1.newLine}`;
+        core.setOutput('output', result);
+        core.setOutput('output-ca', caDoc);
+        core.setOutput('output-rw', rwDoc);
+        core.setOutput('agenda-ca', caAgendaDoc);
+        core.setOutput('agenda-rw', rwAgendaDoc);
         (0, helpers_1.log)('Done generate markdown processes ...');
         (0, helpers_1.log)(result);
         // const token = process.env.GITHUB_TOKEN || ''
@@ -378,7 +435,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.mdUnknownKey = exports.onWorkflowCallSecrets = exports.onWorkflowCallOutputs = exports.onWorkflowCallInputs = exports.onWorkflowCall = exports.mdReusableWorkflow = exports.mdReusableWorkflows = exports.mdAgenda = exports.mdAnnotationNote = exports.mdAnnotationExample = exports.mdCommonHeader = exports.mdAnchor = exports.mdTableColumn = exports.mdTableRows = exports.mdTablePosition = exports.mdTable = exports.mdLink = exports.mdCell = exports.mdBold = exports.mdCodeBlock = exports.mdList = exports.mdNote = exports.mdH3 = exports.mdH2 = exports.mdH1 = exports.mdRaw = exports.positionMap = exports.tbSeparator = exports.divider = exports.newLine = void 0;
+exports.mdUnknownKey = exports.onWorkflowCallSecrets = exports.onWorkflowCallOutputs = exports.onWorkflowCallInputs = exports.onWorkflowCall = exports.mdReusableWorkflow = exports.mdReusableWorkflows = exports.mdCustomActionsOutputs = exports.mdCustomActionsInputs = exports.mdCustomActionsRuns = exports.mdCustomAction = exports.mdCustomActions = exports.mdAgenda = exports.mdAnnotationNote = exports.mdAnnotationExample = exports.mdCommonHeader = exports.mdAnchor = exports.mdTableColumn = exports.mdTableRows = exports.mdTablePosition = exports.mdTable = exports.mdLink = exports.mdCell = exports.mdEmphasis = exports.mdBold = exports.mdCodeBlock = exports.mdList = exports.mdNote = exports.mdH3 = exports.mdH2 = exports.mdH1 = exports.mdRaw = exports.positionMap = exports.tbSeparator = exports.divider = exports.newLine = void 0;
 const constants_1 = __importDefault(__nccwpck_require__(9349));
 const helpers_1 = __nccwpck_require__(6682);
 exports.newLine = '\n';
@@ -405,6 +462,8 @@ const mdCodeBlock = (text) => `\`\`\`${exports.newLine}${text}${exports.newLine}
 exports.mdCodeBlock = mdCodeBlock;
 const mdBold = (text) => `__${text}__`;
 exports.mdBold = mdBold;
+const mdEmphasis = (text) => `\`${text}\``;
+exports.mdEmphasis = mdEmphasis;
 const mdCell = (text) => `| ${text} |`;
 exports.mdCell = mdCell;
 const mdLink = (text, url) => `[${text}](${url})`;
@@ -462,6 +521,88 @@ const mdAgenda = (yamlMap) => {
     return (0, exports.mdList)(agendaItem);
 };
 exports.mdAgenda = mdAgenda;
+const mdCustomActions = ({ customActionsYaml: yamlMap, annotationMap, }) => {
+    const doc = Object.keys(yamlMap)
+        .map((key, i) => (0, exports.mdCustomAction)(i + 1, yamlMap[key], annotationMap[key]))
+        .join(exports.newLine);
+    return doc;
+};
+exports.mdCustomActions = mdCustomActions;
+const mdCustomAction = (num = 1, obj, annotationObj = { example: [], note: [] }) => {
+    const examplesDoc = annotationObj.example
+        .map(exports.mdAnnotationExample)
+        .join(exports.newLine);
+    const notesDoc = annotationObj.note.map(exports.mdAnnotationNote).join(exports.newLine);
+    const contentDoc = ['name', 'description', 'runs', 'inputs', 'outputs']
+        .map((key) => {
+        if (obj[key] !== undefined) {
+            return (0, exports.mdUnknownKey)(key); // no data
+        }
+        switch (key) {
+            case 'name':
+                return (0, exports.mdH2)(`${num}: ${obj[key]}`) + examplesDoc;
+            case 'description':
+                return (0, exports.mdRaw)(obj[key]);
+            case 'runs':
+                return (0, exports.mdCustomActionsRuns)(obj[key]); // to be implemented
+            case 'inputs':
+                return (0, exports.mdCustomActionsInputs)(obj[key]);
+            case 'outputs':
+                return (0, exports.mdCustomActionsOutputs)(obj[key]);
+            default:
+                return (0, exports.mdUnknownKey)(key);
+        }
+    })
+        .join(exports.newLine);
+    return `${contentDoc}${notesDoc}`;
+};
+exports.mdCustomAction = mdCustomAction;
+const mdCustomActionsRuns = (runs) => `${(0, exports.mdEmphasis)(`using: ${runs.using}`)}${exports.newLine}`;
+exports.mdCustomActionsRuns = mdCustomActionsRuns;
+const mdCustomActionsInputs = (obj) => {
+    if (!obj)
+        return '';
+    const headers = ['#', 'Required', 'Name', 'Default', 'Description'];
+    const positions = ['left', 'center', 'left', 'left', 'left'];
+    const rows = Object.keys(obj).map((key, i) => {
+        return [
+            String(i + 1),
+            obj[key].required ? '✅' : '',
+            (0, helpers_1.ToStringSafe)(key),
+            (0, helpers_1.ToStringSafe)(obj[key].default),
+            (0, helpers_1.ToStringSafe)(obj[key].description), // description
+        ];
+    });
+    const tableTitleDoc = (0, exports.mdH3)('Inputs');
+    const tableDoc = (0, exports.mdTable)({
+        headers,
+        rows,
+        positions,
+    });
+    return `${tableTitleDoc}${exports.newLine}${tableDoc}${exports.newLine}`;
+};
+exports.mdCustomActionsInputs = mdCustomActionsInputs;
+const mdCustomActionsOutputs = (obj) => {
+    if (!obj)
+        return '';
+    const headers = ['#', 'Name', 'Description'];
+    const positions = ['left', 'left', 'left'];
+    const rows = Object.keys(obj).map((key, i) => {
+        return [
+            String(i + 1),
+            (0, helpers_1.ToStringSafe)(key),
+            (0, helpers_1.ToStringSafe)(obj[key].description), // description
+        ];
+    });
+    const tableTitleDoc = (0, exports.mdH3)('Outputs');
+    const tableDoc = (0, exports.mdTable)({
+        headers,
+        rows,
+        positions,
+    });
+    return `${tableTitleDoc}${exports.newLine}${tableDoc}${exports.newLine}`;
+};
+exports.mdCustomActionsOutputs = mdCustomActionsOutputs;
 const mdReusableWorkflows = ({ workflowCallYamlMap: yamlMap, annotationMap, }) => {
     const wfsDoc = Object.keys(yamlMap)
         .map((key, i) => (0, exports.mdReusableWorkflow)(i + 1, yamlMap[key], annotationMap[key]))
@@ -474,7 +615,7 @@ const mdReusableWorkflow = (num = 1, obj, annotationObj = { example: [], note: [
         .map(exports.mdAnnotationExample)
         .join(exports.newLine);
     const notesDoc = annotationObj.note.map(exports.mdAnnotationNote).join(exports.newLine);
-    const contentDoc = Object.keys(obj)
+    const contentDoc = ['name', 'on']
         .map((key) => {
         switch (key) {
             case 'name':
@@ -490,7 +631,7 @@ const mdReusableWorkflow = (num = 1, obj, annotationObj = { example: [], note: [
 };
 exports.mdReusableWorkflow = mdReusableWorkflow;
 const onWorkflowCall = ({ workflow_call: obj, }) => {
-    return Object.keys(obj)
+    return ['inputs', 'outputs', 'secrets']
         .map((key) => {
         switch (key) {
             case 'inputs':

@@ -58,12 +58,9 @@ on:
       #   default: false
       #   description: "Generate document and set output result only. (default: false)"
     outputs:
-      document:
-        description: "Reusable workflow markdown document"
-        value: "${{ jobs.documentation.outputs.document }}"
-      agenda:
-        description: "Reusable workflow agenda"
-        value: "${{ jobs.documentation.outputs.agenda }}"
+      output:
+        description: "GitHub Actions markdown document (Reusable Workflow and Custom Actions)"
+        value: "${{ jobs.documentation.outputs.output }}"
 
 env:
   GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
@@ -72,8 +69,7 @@ jobs:
     name: Generate reusable workflow document
     runs-on: ubuntu-latest
     outputs:
-      document: ${{ steps.documentator.outputs.document }}
-      agenda: ${{ steps.documentator.outputs.agenda }}
+      output: ${{ steps.documentator.outputs.output }}
     steps:
       - uses: actions/checkout@v2
       - name: Reusable Workflow Documentator Action
@@ -104,7 +100,7 @@ jobs:
           git checkout -B ${{ steps.branch.outputs.name }} origin/${{ steps.branch.outputs.name }}
           if ${{ inputs.overwrite }}; then
             echo "Overwrite ${{ inputs.filepath }} file ..."
-            echo '${{ steps.documentator.outputs.document }}' > ${{ inputs.filepath }}
+            echo '${{ steps.documentator.outputs.output }}' > ${{ inputs.filepath }}
           else
             num=$(grep -n "@overwrite-anchor" ${{ inputs.filepath }} | awk -F ':' '{print $1}' | head -n 1)
             if [ -n "${num}" ]; then
@@ -113,7 +109,7 @@ jobs:
               cp -f temp.txt ${{ inputs.filepath }}
               rm -f temp.txt
             fi
-            echo '${{ steps.documentator.outputs.document }}' >> ${{ inputs.filepath }}
+            echo '${{ steps.documentator.outputs.output }}' >> ${{ inputs.filepath }}
           fi
           echo "::set-output name=count::$(git diff --name-only | wc -l)"
           git add ${{ inputs.filepath }}
@@ -124,7 +120,7 @@ jobs:
           echo "Changes files count = ${{ steps.changes.outputs.count }} ..."
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git commit -m "⚙ Commit by Reusable workflow documentator"
+          git commit -m "⚙ Updated ${{ inputs.filepath }} by github-actions-documenter"
           if ${{ inputs.make-pull-request == false }}; then
             echo "push to ${{ steps.branch.outputs.name }} ..."
             git push origin HEAD:${{ steps.branch.outputs.name }}
@@ -137,5 +133,5 @@ jobs:
         with:
           title: "📝 Auto generated reusable workflow documentation"
           branch-suffix: timestamp
-          commit-message: "⚙ Commit by Reusable workflow documentator"
-          body: 'Generated document ↓\n---\n${{ steps.documentator.outputs.document }}'
+          commit-message: "⚙ Updated ${{ inputs.filepath }} by github-actions-documenter"
+          body: 'Generated document ↓\n---\n${{ steps.documentator.outputs.output }}'

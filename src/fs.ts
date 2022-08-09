@@ -1,4 +1,9 @@
-import { GitHubActionsYaml, ReuseableWorkflowsYamlFileMap } from './types'
+import {
+  GitHubActionsYaml,
+  ReuseableWorkflowsYamlFileMap,
+  CustomActionsYamlFileMap,
+  CustomActionsYaml,
+} from './types'
 import * as fs from 'fs'
 import constants from './constants'
 import * as path from 'path'
@@ -8,6 +13,7 @@ import { newLine } from './markdown'
 
 const commentRegExp = /^\s*#/
 const annotationRegExp = /^\s*#\s*@/
+const actionsYamlRegExp = /^actions\.ya?ml$/
 
 export interface GithubActionsAnnotationMap {
   [key: string]: Annotations
@@ -24,11 +30,36 @@ export interface Annotations {
 }
 
 export interface ReadYamlResult {
+  customActionsYaml: CustomActionsYamlFileMap
   workflowCallYamlMap: ReuseableWorkflowsYamlFileMap
   annotationMap: GithubActionsAnnotationMap
 }
 
+export interface ReadReusableWorkflowsYamlResult {
+  workflowCallYamlMap: ReuseableWorkflowsYamlFileMap
+  annotationMap: GithubActionsAnnotationMap
+}
+
+export interface ReadCustomActionsYamlResult {
+  customActionsYaml: CustomActionsYamlFileMap
+  annotationMap: GithubActionsAnnotationMap
+}
+
 export const readYamls = (): ReadYamlResult => {
+  const { workflowCallYamlMap, annotationMap } = readReuseableWorkflowsYaml()
+  const { customActionsYaml, annotationMap: annotationMap2 } =
+    readCustomActionsYaml()
+  return {
+    customActionsYaml,
+    workflowCallYamlMap,
+    annotationMap: {
+      ...annotationMap,
+      ...annotationMap2,
+    },
+  }
+}
+
+const readReuseableWorkflowsYaml = (): ReadReusableWorkflowsYamlResult => {
   const workflowCallYamlMap: ReuseableWorkflowsYamlFileMap = {}
   const annotationMap: GithubActionsAnnotationMap = {}
   fs.readdirSync(constants.workflowsDir).forEach((fName) => {
@@ -42,14 +73,12 @@ export const readYamls = (): ReadYamlResult => {
 
       // parse yaml file and filter workflow calls
       const doc = yaml.load(actualLines.join(newLine)) as GitHubActionsYaml
-      if (isWorkflowCall(doc)) {
-        log('File is a valid workflow_call yml file: ' + fName)
-        workflowCallYamlMap[fPath] = doc
 
-        // parse annotation comments
-        const annotations = parseAnnotationComments(lines)
-        annotationMap[fPath] = annotations
-      }
+      if (!isWorkflowCall(doc)) return
+
+      log('File is a valid workflow_call yml file: ' + fName)
+      workflowCallYamlMap[fPath] = doc
+      annotationMap[fPath] = parseAnnotationComments(lines)
       return
     } catch (e) {
       log('File is not a valid yml file: ' + fName)
@@ -126,3 +155,59 @@ const recursiveFilterAnnotationComments = (
 const trimComments = (comments: string[]): string[] => {
   return comments.map((comment) => comment?.replace(commentRegExp, ''))
 }
+
+const readCustomActionsYaml = (): ReadCustomActionsYamlResult =>
+  recursiveReadCustomActions(constants.rootDir)
+
+export const recursiveReadCustomActions = (
+  dir: fs.PathLike,
+  yamlMap: ReadCustomActionsYamlResult = {
+    customActionsYaml: {},
+    annotationMap: {},
+  }
+): ReadCustomActionsYamlResult => {
+  const dirs: string[] = []
+  const customActionsMap: CustomActionsYamlFileMap = {}
+  const annotationMap: GithubActionsAnnotationMap = {}
+  fs.readdirSync(dir, { withFileTypes: true }).forEach((dirent) => {
+    const fPath = `${dir}/${dirent.name}`
+    // if directory, recursively read its files
+    if (dirent.isDirectory()) dirs.push(fPath)
+    if (!dirent.isFile()) return // skip if not a file
+    if (!actionsYamlRegExp.test(dirent.name)) return // skip if not a yaml file
+    try {
+      const file = fs.readFileSync(fPath, 'utf-8')
+      const lines = file.split(newLine)
+      const actualLines = lines.filter((l) => !commentRegExp.test(l))
+
+      const doc = yaml.load(actualLines.join(newLine)) as CustomActionsYaml
+
+      if (isCustomActions(doc)) return
+
+      log('File is a valid Custom Actions file: ' + fPath)
+      annotationMap[fPath] = parseAnnotationComments(lines)
+      customActionsMap[fPath] = doc
+    } catch (e) {
+      log('File is not a valid yml file: ' + fPath)
+      log(e instanceof Error ? e.message : e)
+    }
+  })
+  dirs.forEach((d) => {
+    yamlMap = recursiveReadCustomActions(d, {
+      customActionsYaml: {
+        ...yamlMap.customActionsYaml,
+        ...customActionsMap,
+      },
+      annotationMap: {
+        ...yamlMap.annotationMap,
+        ...annotationMap,
+      },
+    })
+  })
+  return yamlMap
+}
+
+const isCustomActions = (obj: CustomActionsYaml): boolean =>
+  ['name', 'description', 'runs'].every(
+    (key) => obj[key as keyof CustomActionsYaml] !== undefined
+  )

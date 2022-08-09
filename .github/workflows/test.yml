@@ -28,5 +28,8 @@ jobs:
           milliseconds: 1000
       - name: Outputs
         run:
-          echo "document\n ${{ steps.test.outputs.document }}"
-          echo "agenda\n ${{ steps.test.outputs.agenda }}"
+          echo "Output\n ${{ steps.test.outputs.output }}"
+          echo "Custom Actions Agenda\n ${{ steps.test.outputs.agenda-ca }}"
+          echo "Custom Actions Output\n ${{ steps.test.outputs.output-ca }}"
+          echo "Reusable Workflow Agenda\n ${{ steps.test.outputs.agenda-rw }}"
+          echo "Reusable Workflow Output\n ${{ steps.test.outputs.output-rw }}"
