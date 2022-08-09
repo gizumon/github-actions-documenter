@@ -58,10 +58,11 @@ const helpers_1 = __nccwpck_require__(6682);
 const markdown_1 = __nccwpck_require__(7213);
 const commentRegExp = /^\s*#/;
 const annotationRegExp = /^\s*#\s*@/;
-const actionsYamlRegExp = /^actions\.ya?ml$/;
+const actionsYamlRegExp = /^action\.ya?ml$/;
 const readYamls = () => {
     const { workflowCallYamlMap, annotationMap } = readReuseableWorkflowsYaml();
     const { customActionsYaml, annotationMap: annotationMap2 } = readCustomActionsYaml();
+    (0, helpers_1.log)('custom actions YAML: ' + JSON.stringify(customActionsYaml));
     return {
         customActionsYaml,
         workflowCallYamlMap,
@@ -166,20 +167,21 @@ const recursiveReadCustomActions = (dir, yamlMap = {
     const customActionsMap = {};
     const annotationMap = {};
     fs.readdirSync(dir, { withFileTypes: true }).forEach((dirent) => {
-        const fPath = `${dir}/${dirent.name}`;
+        const fPath = path.join(dir.toString(), dirent.name);
         // if directory, recursively read its files
         if (dirent.isDirectory())
-            dirs.push(fPath);
+            return dirs.push(fPath);
         if (!dirent.isFile())
             return; // skip if not a file
         if (!actionsYamlRegExp.test(dirent.name))
             return; // skip if not a yaml file
         try {
+            (0, helpers_1.log)('Read custom action file: ' + fPath);
             const file = fs.readFileSync(fPath, 'utf-8');
             const lines = file.split(markdown_1.newLine);
             const actualLines = lines.filter((l) => !commentRegExp.test(l));
             const doc = yaml.load(actualLines.join(markdown_1.newLine));
-            if (isCustomActions(doc))
+            if (!isCustomActions(doc))
                 return;
             (0, helpers_1.log)('File is a valid Custom Actions file: ' + fPath);
             annotationMap[fPath] = parseAnnotationComments(lines);
@@ -535,7 +537,7 @@ const mdCustomAction = (num = 1, obj, annotationObj = { example: [], note: [] })
     const notesDoc = annotationObj.note.map(exports.mdAnnotationNote).join(exports.newLine);
     const contentDoc = ['name', 'description', 'runs', 'inputs', 'outputs']
         .map((key) => {
-        if (obj[key] !== undefined) {
+        if (obj[key] === undefined) {
             return (0, exports.mdUnknownKey)(key); // no data
         }
         switch (key) {

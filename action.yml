@@ -1,3 +1,9 @@
+# @example=### Basic example
+# steps:
+#   - id: documentator
+#     name: "Generate document"
+#     uses: gizumon/github-actions-documenter/.github/workflows/github-actions-documenter.yml@main
+
 name: 'GitHub Actions Document Generator'
 description: 'Auto documentation for Github Actions workflows'
 author: 'tomoatsu.sekikawa'

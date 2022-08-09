@@ -125,7 +125,7 @@ export const mdCustomAction = (
   const notesDoc = annotationObj.note.map(mdAnnotationNote).join(newLine)
   const contentDoc = ['name', 'description', 'runs', 'inputs', 'outputs']
     .map((key) => {
-      if (obj[key as keyof CustomActionsYaml] !== undefined) {
+      if (obj[key as keyof CustomActionsYaml] === undefined) {
         return mdUnknownKey(key) // no data
       }
       switch (key) {

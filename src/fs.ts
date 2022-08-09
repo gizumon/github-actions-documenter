@@ -13,7 +13,7 @@ import { newLine } from './markdown'
 
 const commentRegExp = /^\s*#/
 const annotationRegExp = /^\s*#\s*@/
-const actionsYamlRegExp = /^actions\.ya?ml$/
+const actionsYamlRegExp = /^action\.ya?ml$/
 
 export interface GithubActionsAnnotationMap {
   [key: string]: Annotations
@@ -49,6 +49,7 @@ export const readYamls = (): ReadYamlResult => {
   const { workflowCallYamlMap, annotationMap } = readReuseableWorkflowsYaml()
   const { customActionsYaml, annotationMap: annotationMap2 } =
     readCustomActionsYaml()
+  log('custom actions YAML: ' + JSON.stringify(customActionsYaml))
   return {
     customActionsYaml,
     workflowCallYamlMap,
@@ -170,19 +171,19 @@ export const recursiveReadCustomActions = (
   const customActionsMap: CustomActionsYamlFileMap = {}
   const annotationMap: GithubActionsAnnotationMap = {}
   fs.readdirSync(dir, { withFileTypes: true }).forEach((dirent) => {
-    const fPath = `${dir}/${dirent.name}`
+    const fPath = path.join(dir.toString(), dirent.name)
     // if directory, recursively read its files
-    if (dirent.isDirectory()) dirs.push(fPath)
+    if (dirent.isDirectory()) return dirs.push(fPath)
     if (!dirent.isFile()) return // skip if not a file
     if (!actionsYamlRegExp.test(dirent.name)) return // skip if not a yaml file
     try {
+      log('Read custom action file: ' + fPath)
       const file = fs.readFileSync(fPath, 'utf-8')
       const lines = file.split(newLine)
       const actualLines = lines.filter((l) => !commentRegExp.test(l))
 
       const doc = yaml.load(actualLines.join(newLine)) as CustomActionsYaml
-
-      if (isCustomActions(doc)) return
+      if (!isCustomActions(doc)) return
 
       log('File is a valid Custom Actions file: ' + fPath)
       annotationMap[fPath] = parseAnnotationComments(lines)
