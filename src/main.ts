@@ -11,6 +11,7 @@ import {
   newLine,
   mdAnchor,
   mdAgenda,
+  mdH1,
 } from './markdown'
 import { readYamls } from './fs'
 import { log } from './helpers'
@@ -46,16 +47,19 @@ const runMain = async (): Promise<void> => {
     }
     const anchorDoc = mdAnchor()
     const headerDoc = mdCommonHeader()
+    const caTitle = mdH1('🔰 Custom Actions Usage 🔰')
     const caDoc = mdCustomActions(readYamlResult)
-    const rwDoc = mdReusableWorkflows(readYamlResult)
     const caAgendaDoc = mdAgenda(readYamlResult.customActionsYaml)
+    const rwTitle = mdH1('🔰 Reusable Workflows 🔰')
+    const rwDoc = mdReusableWorkflows(readYamlResult)
     const rwAgendaDoc = mdAgenda(readYamlResult.workflowCallYamlMap)
-
-    const result = `${newLine}${anchorDoc}${headerDoc}${newLine}${caAgendaDoc}${newLine}${caDoc}${newLine}${rwAgendaDoc}${newLine}${rwDoc}${newLine}`
+    const ca = `${caTitle}${newLine}${caAgendaDoc}${newLine}${caDoc}`
+    const rw = `${rwTitle}${newLine}${rwAgendaDoc}${newLine}${rwDoc}`
+    const result = `${newLine}${anchorDoc}${headerDoc}${ca}${rw}`
     core.setOutput('output', result)
     core.setOutput('output-ca', caDoc)
-    core.setOutput('output-rw', rwDoc)
     core.setOutput('agenda-ca', caAgendaDoc)
+    core.setOutput('output-rw', rwDoc)
     core.setOutput('agenda-rw', rwAgendaDoc)
     log('Done generate markdown processes ...')
     log(result)

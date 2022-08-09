@@ -28,7 +28,7 @@
 # - push
 # - pull_request
 
-name: GitHub Actions Document Generator
+name: Document Generate Reusable Workflow 
 on:
   workflow_call:
     inputs:
