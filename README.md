@@ -33,7 +33,7 @@ For the additional documentation, this feature supports comment annotation featu
 ## GitHub Actions Document Generator
 
 > Support only output markdown document for now. Will support file edit and commit.
-> Please refer to [this file](.github/workflows/github-actions-documenter.yml) for actual usage.
+> If you want to edit and commit a generated document, please refer to [this file](.github/workflows/github-actions-documenter.yml) for actual usage.
 
 ### Basic Example
 
