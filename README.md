@@ -29,7 +29,7 @@ For the additional documentation, this feature supports comment annotation featu
 
 * You can find an example from the followings.
   * [Annotation Comment](.github/workflows/github-actions-documenter.yml)
-  * [Generated document](#-reusable-workflows-usage-)
+  * [Generated document](#-custom-actions-usage-)
 
 [](@overwrite-anchor=start)
 
