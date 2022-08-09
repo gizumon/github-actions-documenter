@@ -93,7 +93,7 @@ const runMain = async (): Promise<void> => {
     //   if (props.shouldMakePullRequest) {
     //     // if make-pull-request is true, create a pull request
     //     try {
-    //       const prBranch = `feature/reusable-workflow-documentator-${Date.now()}`
+    //       const prBranch = `feature/github-actions-documenter-${Date.now()}`
     //       exec.exec('git', ['push', 'origin', prBranch])
     //       const pullRequest = await octokit.rest.pulls.create({
     //         owner,

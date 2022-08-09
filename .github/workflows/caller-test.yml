@@ -12,7 +12,7 @@ on:
 
 jobs:
   test:
-    uses: gizumon/reusable-workflow-documentator/.github/workflows/reusable-workflow-documentator.yml@main
+    uses: gizumon/github-actions-documenter/.github/workflows/github-actions-documenter.yml@main
     with:
       # filepath: .github/docs/reusable-workflow-doc.md
       filepath: README.md

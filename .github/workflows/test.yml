@@ -28,4 +28,5 @@ jobs:
           milliseconds: 1000
       - name: Outputs
         run:
-          echo "output = ${{ steps.test.outputs.result }}"
+          echo "document\n ${{ steps.test.outputs.document }}"
+          echo "agenda\n ${{ steps.test.outputs.agenda }}"
