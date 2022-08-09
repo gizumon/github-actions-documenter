@@ -32,6 +32,7 @@ For the additional documentation, this feature supports comment annotation featu
   * [Generated document](#-reusable-workflows-usage-)
 
 [](@overwrite-anchor=start)
+
 ---
 
 > 🚀 Generated automatically by [github-actions-documenter](https://github.com/gizumon/github-actions-documenter) 🚀
@@ -45,6 +46,8 @@ For the additional documentation, this feature supports comment annotation featu
 
 `using: node16`
 
+Auto documentation for Github Actions workflows
+
 ### Basic example
 
 ```
@@ -53,8 +56,6 @@ For the additional documentation, this feature supports comment annotation featu
      name: "Generate document"
      uses: gizumon/github-actions-documenter/.github/workflows/github-actions-documenter.yml@main
 ```
-
-Auto documentation for Github Actions workflows
 
 
 ### Outputs
@@ -66,6 +67,7 @@ Auto documentation for Github Actions workflows
 | 3 | output-ca | Custom Actions markdown documents |
 | 4 | agenda-rw | Agenda for Reusable Workflows markdown documents |
 | 5 | output-rw | Reusable Workflows markdown documents |
+
 # 🔰 Reusable Workflows 🔰
 
 * [1: Document Generate Reusable Workflow](#1-document-generate-reusable-workflow) ( [📄](.github/workflows/github-actions-documenter.yml) )
@@ -124,3 +126,4 @@ Auto documentation for Github Actions workflows
 
 ---
 [](@overwrite-anchor=end)
+
