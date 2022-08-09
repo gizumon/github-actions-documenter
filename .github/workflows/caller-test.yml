@@ -12,9 +12,8 @@ on:
 
 jobs:
   test:
-    uses: gizumon/github-actions-documenter/.github/workflows/github-actions-documenter.yml@main
+    uses: gizumon/github-actions-documenter.github/workflows/github-actions-documenter.yml@main
     with:
-      # filepath: .github/docs/reusable-workflow-doc.md
       filepath: README.md
       overwrite: false
       make-pull-request: false
