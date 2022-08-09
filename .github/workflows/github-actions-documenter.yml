@@ -133,7 +133,7 @@ jobs:
 
       - name: Create New Pull Request If Needed
         if: ${{ (steps.changes.outputs.count > 0) && (inputs.make-pull-request == true) }}
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v4
         with:
           title: "📝 Auto generated reusable workflow documentation"
           branch-suffix: timestamp
