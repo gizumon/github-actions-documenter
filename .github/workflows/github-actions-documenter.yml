@@ -75,7 +75,7 @@ jobs:
       document: ${{ steps.documentator.outputs.document }}
       agenda: ${{ steps.documentator.outputs.agenda }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Reusable Workflow Documentator Action
         id: documentator
         uses: gizumon/github-actions-documenter@main
