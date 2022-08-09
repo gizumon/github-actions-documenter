@@ -31,6 +31,7 @@ For the additional documentation, this feature supports comment annotation featu
   * [Annotation Comment](.github/workflows/github-actions-documenter.yml)
   * [Generated document](#-custom-actions-usage-)
 
+
 [](@overwrite-anchor=start)
 
 ---
@@ -52,9 +53,9 @@ Auto documentation for Github Actions workflows
 
 ```
  steps:
-   - id: documentator
+   - id: documenter
      name: "Generate document"
-     uses: gizumon/github-actions-documenter/.github/workflows/github-actions-documenter.yml@main
+     uses: gizumon/github-actions-documenter@main
 ```
 
 
