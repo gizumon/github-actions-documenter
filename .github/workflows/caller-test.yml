@@ -4,10 +4,13 @@ on:
     branches:
       - main
     paths:
-      - 'action.yml'
+      - '*/action.yml'
+      - '*/action.yaml'
       - '.github/workflows/*.yml'
   pull_request:
     paths:
+      - '*/action.yml'
+      - '*/action.yml'
       - '.github/workflows/*.yml'
 
 jobs:
