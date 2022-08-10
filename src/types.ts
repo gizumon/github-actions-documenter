@@ -183,3 +183,17 @@ export interface CustomDockerActions {
   image: string
   [key: string]: any
 }
+
+export interface MdDocs {
+  header: string
+  footer: string
+  output: string
+  ca: string
+  caTitle: string
+  caContent: string
+  caAgenda: string
+  rw: string
+  rwTitle: string
+  rwContent: string
+  rwAgenda: string
+}

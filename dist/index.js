@@ -334,29 +334,14 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
         (0, helpers_1.log)(`props: ${JSON.stringify(props)} ...`);
         // read yml file
         const readYamlResult = (0, fs_1.readYamls)();
-        if (Object.keys(readYamlResult.workflowCallYamlMap).length === 0) {
-            (0, helpers_1.log)('No workflow call yaml file found');
-            core.setOutput('result', '');
-            return;
-        }
-        const headerDoc = (0, markdown_1.mdCommonHeader)();
-        const footerDoc = (0, markdown_1.mdFooter)();
-        const caTitle = (0, markdown_1.mdH1)('🔰 Custom Actions Usage 🔰');
-        const caDoc = (0, markdown_1.mdCustomActions)(readYamlResult);
-        const caAgendaDoc = (0, markdown_1.mdAgenda)(readYamlResult.customActionsYaml);
-        const rwTitle = (0, markdown_1.mdH1)('🔰 Reusable Workflows 🔰');
-        const rwDoc = (0, markdown_1.mdReusableWorkflows)(readYamlResult);
-        const rwAgendaDoc = (0, markdown_1.mdAgenda)(readYamlResult.workflowCallYamlMap);
-        const ca = `${caTitle}${markdown_1.newLine}${caAgendaDoc}${markdown_1.newLine}${caDoc}`;
-        const rw = `${rwTitle}${markdown_1.newLine}${rwAgendaDoc}${markdown_1.newLine}${rwDoc}`;
-        const result = `${markdown_1.newLine}${headerDoc}${ca}${markdown_1.newLine}${rw}${footerDoc}`;
-        core.setOutput('output', result);
-        core.setOutput('output-ca', caDoc);
-        core.setOutput('agenda-ca', caAgendaDoc);
-        core.setOutput('output-rw', rwDoc);
-        core.setOutput('agenda-rw', rwAgendaDoc);
+        const results = makeResult(readYamlResult);
+        core.setOutput('output', results.output);
+        core.setOutput('output-ca', results.caContent);
+        core.setOutput('agenda-ca', results.caAgenda);
+        core.setOutput('output-rw', results.rwContent);
+        core.setOutput('agenda-rw', results.rwAgenda);
         (0, helpers_1.log)('Done generate markdown processes ...');
-        (0, helpers_1.log)(result);
+        (0, helpers_1.log)(results.output);
         // const token = process.env.GITHUB_TOKEN || ''
         // log('token: ' + token)
         // TODO: Fix this, not working for now due to the generated file cannot find.
@@ -427,6 +412,53 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
         core.setFailed(err instanceof Error ? err.message : `Unknown error: ${String(err)}`);
     }
 });
+const makeResult = (yamlObj) => {
+    const commonDocs = {
+        header: '',
+        footer: '',
+        output: '',
+    };
+    const caDocs = {
+        ca: '',
+        caTitle: '',
+        caContent: '',
+        caAgenda: '',
+    };
+    const rwDocs = {
+        rw: '',
+        rwTitle: '',
+        rwContent: '',
+        rwAgenda: '',
+    };
+    const hasCaDoc = Object.keys(yamlObj.customActionsYaml).length > 0;
+    const hasRwDoc = Object.keys(yamlObj.workflowCallYamlMap).length > 0;
+    if (!hasCaDoc && !hasRwDoc) {
+        // return empty result
+        (0, helpers_1.log)('No workflow call yaml file found');
+        return Object.assign(Object.assign(Object.assign({}, commonDocs), caDocs), rwDocs);
+    }
+    commonDocs.header = (0, markdown_1.mdCommonHeader)();
+    commonDocs.footer = (0, markdown_1.mdFooter)();
+    if (hasCaDoc) {
+        // set Custom Actions result
+        (0, helpers_1.log)('Custom Actions yaml file found');
+        caDocs.caTitle = (0, markdown_1.mdH1)('🔰 Custom Actions 🔰');
+        caDocs.caContent = (0, markdown_1.mdCustomActions)(yamlObj);
+        caDocs.caAgenda = (0, markdown_1.mdAgenda)(yamlObj.customActionsYaml);
+        caDocs.ca = `${caDocs.caTitle}${markdown_1.newLine}${caDocs.caAgenda}${markdown_1.newLine}${caDocs.caContent}${markdown_1.newLine}`;
+    }
+    if (hasRwDoc) {
+        // set Reusable Workflows result
+        (0, helpers_1.log)('Reusable Workflows yaml file found');
+        rwDocs.rwTitle = (0, markdown_1.mdH1)('🔰 Reusable Workflows 🔰');
+        rwDocs.rwContent = (0, markdown_1.mdReusableWorkflows)(yamlObj);
+        rwDocs.rwAgenda = (0, markdown_1.mdAgenda)(yamlObj.workflowCallYamlMap);
+        rwDocs.rw = `${rwDocs.rwTitle}${markdown_1.newLine}${rwDocs.rwAgenda}${markdown_1.newLine}${rwDocs.rwContent}${markdown_1.newLine}`;
+    }
+    // set output result
+    commonDocs.output = `${commonDocs.header}${caDocs.ca}${rwDocs.rw}${commonDocs.footer}`;
+    return Object.assign(Object.assign(Object.assign({}, commonDocs), caDocs), rwDocs);
+};
 runMain();
 
 

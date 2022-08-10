@@ -13,7 +13,7 @@ import {
   mdAgenda,
   mdH1,
 } from './markdown'
-import { readYamls } from './fs'
+import { readYamls, ReadYamlResult } from './fs'
 import { log } from './helpers'
 
 interface Props {
@@ -40,29 +40,15 @@ const runMain = async (): Promise<void> => {
 
     // read yml file
     const readYamlResult = readYamls()
-    if (Object.keys(readYamlResult.workflowCallYamlMap).length === 0) {
-      log('No workflow call yaml file found')
-      core.setOutput('result', '')
-      return
-    }
-    const headerDoc = mdCommonHeader()
-    const footerDoc = mdFooter()
-    const caTitle = mdH1('🔰 Custom Actions Usage 🔰')
-    const caDoc = mdCustomActions(readYamlResult)
-    const caAgendaDoc = mdAgenda(readYamlResult.customActionsYaml)
-    const rwTitle = mdH1('🔰 Reusable Workflows 🔰')
-    const rwDoc = mdReusableWorkflows(readYamlResult)
-    const rwAgendaDoc = mdAgenda(readYamlResult.workflowCallYamlMap)
-    const ca = `${caTitle}${newLine}${caAgendaDoc}${newLine}${caDoc}`
-    const rw = `${rwTitle}${newLine}${rwAgendaDoc}${newLine}${rwDoc}`
-    const result = `${newLine}${headerDoc}${ca}${newLine}${rw}${footerDoc}`
-    core.setOutput('output', result)
-    core.setOutput('output-ca', caDoc)
-    core.setOutput('agenda-ca', caAgendaDoc)
-    core.setOutput('output-rw', rwDoc)
-    core.setOutput('agenda-rw', rwAgendaDoc)
+    const results = makeResult(readYamlResult)
+
+    core.setOutput('output', results.output)
+    core.setOutput('output-ca', results.caContent)
+    core.setOutput('agenda-ca', results.caAgenda)
+    core.setOutput('output-rw', results.rwContent)
+    core.setOutput('agenda-rw', results.rwAgenda)
     log('Done generate markdown processes ...')
-    log(result)
+    log(results.output)
 
     // const token = process.env.GITHUB_TOKEN || ''
     // log('token: ' + token)
@@ -135,6 +121,76 @@ const runMain = async (): Promise<void> => {
     core.setFailed(
       err instanceof Error ? err.message : `Unknown error: ${String(err)}`
     )
+  }
+}
+
+interface MdDocs {
+  header: string
+  footer: string
+  output: string
+  ca: string
+  caTitle: string
+  caContent: string
+  caAgenda: string
+  rw: string
+  rwTitle: string
+  rwContent: string
+  rwAgenda: string
+}
+
+const makeResult = (yamlObj: ReadYamlResult): MdDocs => {
+  const commonDocs = {
+    header: '',
+    footer: '',
+    output: '',
+  }
+  const caDocs = {
+    ca: '',
+    caTitle: '',
+    caContent: '',
+    caAgenda: '',
+  }
+  const rwDocs = {
+    rw: '',
+    rwTitle: '',
+    rwContent: '',
+    rwAgenda: '',
+  }
+  const hasCaDoc = Object.keys(yamlObj.customActionsYaml).length > 0
+  const hasRwDoc = Object.keys(yamlObj.workflowCallYamlMap).length > 0
+  if (!hasCaDoc && !hasRwDoc) {
+    // return empty result
+    log('No workflow call yaml file found')
+    return {
+      ...commonDocs,
+      ...caDocs,
+      ...rwDocs,
+    }
+  }
+  commonDocs.header = mdCommonHeader()
+  commonDocs.footer = mdFooter()
+  if (hasCaDoc) {
+    // set Custom Actions result
+    log('Custom Actions yaml file found')
+    caDocs.caTitle = mdH1('🔰 Custom Actions 🔰')
+    caDocs.caContent = mdCustomActions(yamlObj)
+    caDocs.caAgenda = mdAgenda(yamlObj.customActionsYaml)
+    caDocs.ca = `${caDocs.caTitle}${newLine}${caDocs.caAgenda}${newLine}${caDocs.caContent}${newLine}`
+  }
+  if (hasRwDoc) {
+    // set Reusable Workflows result
+    log('Reusable Workflows yaml file found')
+    rwDocs.rwTitle = mdH1('🔰 Reusable Workflows 🔰')
+    rwDocs.rwContent = mdReusableWorkflows(yamlObj)
+    rwDocs.rwAgenda = mdAgenda(yamlObj.workflowCallYamlMap)
+    rwDocs.rw = `${rwDocs.rwTitle}${newLine}${rwDocs.rwAgenda}${newLine}${rwDocs.rwContent}${newLine}`
+  }
+  // set output result
+  commonDocs.output = `${commonDocs.header}${caDocs.ca}${rwDocs.rw}${commonDocs.footer}`
+  return {
+    ...commonDocs,
+    ...caDocs,
+    ...rwDocs,
   }
 }
 
