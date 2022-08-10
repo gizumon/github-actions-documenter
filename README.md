@@ -30,6 +30,9 @@ For the additional documentation, this feature supports comment annotation featu
 * You can find an example from the followings.
   * [Annotation Comment](.github/workflows/github-actions-documenter.yml)
   * [Generated document](#-custom-actions-usage-)
+## Change log
+
+* 2022/08: First creation
 
 [](@overwrite-anchor=start)
 
@@ -127,6 +130,3 @@ Auto documentation for Github Actions workflows
 ---
 [](@overwrite-anchor=end)
 
-## Change log
-
-* 2022/08: First creation
