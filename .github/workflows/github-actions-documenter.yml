@@ -28,7 +28,7 @@
 # - push
 # - pull_request
 
-name: Document Generate Reusable Workflow 
+name: Document Generate Reusable Workflow
 on:
   workflow_call:
     inputs:
@@ -107,7 +107,7 @@ jobs:
             if [ -n "${startN}" ]; then
               echo "Remove from ${startN} line to ${endN} line ..."
               if [ -n "${endN}" ]; then
-                sed -e "$(( ${startN} - 1 )),${endN}d" ${{ inputs.filepath }} > temp.txt
+                sed -e "$(( ${startN} - 1 )),$(( ${endN} + 1 ))d" ${{ inputs.filepath }} > temp.txt
               else
                 sed -e "$(( ${startN} - 1 )),\$d" ${{ inputs.filepath }} > temp.txt
               fi

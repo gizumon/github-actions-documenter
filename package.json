@@ -1,6 +1,6 @@
 {
   "name": "github-actions-documenter",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "private": true,
   "description": "Auto documentation for Resuable Wrokflow",
   "main": "lib/main.js",
