@@ -85,7 +85,7 @@ Auto documentation for Github Actions workflows
  on:
    pull_request:
      paths:
-       - .github/workflows/*.yml
+       - '.github/workflows/*.yml'
  jobs:
    test:
      uses: gizumon/github-actions-documenter/.github/workflows/github-actions-documenter.yml@main
@@ -93,19 +93,19 @@ Auto documentation for Github Actions workflows
        filepath: README.md
 ```
 
-### Example2: Advanced example (with GHES support)
+### Example2: Advanced example
 
 ```
  name: "Advanced example"
  on:
    pull_request:
      paths:
-       - .github/workflows/*.yml
+       - '.github/workflows/*.yml'
  jobs:
    test:
      uses: gizumon/github-actions-documenter/.github/workflows/github-actions-documenter.yml@main
      with:
-       filepath: .github/docs/reusable-workflow-doc.md
+       filepath: .github/docs/github-actions-doc.md
        overwrite: true
        make-pull-request: true
 ```
