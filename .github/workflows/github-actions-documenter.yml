@@ -10,7 +10,7 @@
 #     with:
 #       filepath: README.md
 
-# @example=### Example2: Advanced example (with GHES support)
+# @example=### Example2: Advanced example
 # name: "Advanced example"
 # on:
 #   pull_request:
@@ -20,7 +20,7 @@
 #   test:
 #     uses: gizumon/github-actions-documenter/.github/workflows/github-actions-documenter.yml@main
 #     with:
-#       filepath: .github/docs/reusable-workflow-doc.md
+#       filepath: .github/docs/github-actions-doc.md
 #       overwrite: true
 #       make-pull-request: true
 
@@ -60,7 +60,7 @@ on:
     outputs:
       output:
         description: "GitHub Actions markdown document (Reusable Workflow and Custom Actions)"
-        value: "${{ jobs.documentation.outputs.output }}"
+        value: ${{ jobs.documentation.outputs.output }}
 
 env:
   GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
@@ -69,18 +69,12 @@ jobs:
     name: Generate reusable workflow document
     runs-on: ubuntu-latest
     outputs:
-      output: ${{ steps.documentator.outputs.output }}
+      output: ${{ steps.documenter.outputs.output }}
     steps:
       - uses: actions/checkout@v2
-      - name: Reusable Workflow Documentator Action
-        id: documentator
+      - name: Github Actions Documenter Action
+        id: documenter
         uses: gizumon/github-actions-documenter@main
-        # with:
-        #   filepath: ${{ inputs.filepath }}
-        #   github-base-url: ${{ inputs.github-base-url }}
-        #   overwrite: ${{ inputs.overwrite }}
-        #   make-pull-request: ${{ inputs.make-pull-request }}
-        #   generate-only: ${{ inputs.generate-only }}
 
       - name: Get branch name
         id: branch
@@ -95,27 +89,30 @@ jobs:
 
       - name: Add a new file
         id: changes
+        env:
+          DOCUMENT: ${{ steps.documenter.outputs.output }}
         run: |
           git fetch
           git checkout -B ${{ steps.branch.outputs.name }} origin/${{ steps.branch.outputs.name }}
           if ${{ inputs.overwrite }}; then
             echo "Overwrite ${{ inputs.filepath }} file ..."
-            echo '${{ steps.documentator.outputs.output }}' > ${{ inputs.filepath }}
+            echo "${DOCUMENT}" > ${{ inputs.filepath }}
           else
             startN=$(grep -n "@overwrite-anchor=start" ${{ inputs.filepath }} | awk -F ':' '{print $1}' | head -n 1)
             endN=$(grep -n "@overwrite-anchor=end" ${{ inputs.filepath }} | awk -F ':' '{print $1}' | head -n 1)
             if [ -n "${startN}" ]; then
               echo "Remove from ${startN} line to ${endN} line ..."
               if [ -n "${endN}" ]; then
-                sed -e "$(( ${startN} - 1 )),$(( ${endN} + 1 ))d" ${{ inputs.filepath }} > temp.txt
+                sed -e "$(( ${startN} )),$(( ${endN} + 1 ))d" ${{ inputs.filepath }} > temp.txt
               else
-                sed -e "$(( ${startN} - 1 )),\$d" ${{ inputs.filepath }} > temp.txt
+                sed -e "$(( ${startN} )),\$d" ${{ inputs.filepath }} > temp.txt
               fi
               cp -f temp.txt ${{ inputs.filepath }}
               rm -f temp.txt
             fi
-            echo '${{ steps.documentator.outputs.output }}' >> ${{ inputs.filepath }}
+            echo "${DOCUMENT}" >> ${{ inputs.filepath }}
           fi
+          git diff --name-only
           echo "::set-output name=count::$(git diff --name-only | wc -l)"
           git add ${{ inputs.filepath }}
 
@@ -135,8 +132,10 @@ jobs:
       - name: Create New Pull Request If Needed
         if: ${{ (steps.changes.outputs.count > 0) && (inputs.make-pull-request == true) }}
         uses: peter-evans/create-pull-request@v3
+        env:
+          DOCUMENT: ${{ steps.documenter.outputs.output }}
         with:
           title: "📝 Auto generated GitHub Actions documentation"
           branch-suffix: timestamp
           commit-message: "⚙ Updated ${{ inputs.filepath }} by github-actions-documenter"
-          body: 'Generated document ↓\n---\n${{ steps.documentator.outputs.output }}'
+          body: "Generated document ↓\n---\n${DOCUMENT}"
