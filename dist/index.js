@@ -235,7 +235,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.toAnchorLink = exports.ToStringSafe = exports.log = void 0;
+exports.toBRFromNewLine = exports.toAnchorLink = exports.toStringSafe = exports.log = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const core = __importStar(__nccwpck_require__(6914));
 // const isDebug = core.getInput('debug') === 'true'
@@ -246,7 +246,7 @@ const log = (msg) => {
     core.info(msg);
 };
 exports.log = log;
-const ToStringSafe = (str) => {
+const toStringSafe = (str) => {
     switch (typeof str) {
         case 'undefined':
             return '';
@@ -262,7 +262,7 @@ const ToStringSafe = (str) => {
             return String(str);
     }
 };
-exports.ToStringSafe = ToStringSafe;
+exports.toStringSafe = toStringSafe;
 const toAnchorLink = (str) => '#' +
     encodeURIComponent(str
         .trim()
@@ -270,6 +270,11 @@ const toAnchorLink = (str) => '#' +
         .replace(/\s+/g, '-')
         .replace(/[^0-9a-zA-Z-]/, ''));
 exports.toAnchorLink = toAnchorLink;
+const toBRFromNewLine = (str) => str.trim()
+    .replace(/(\r\n|\n|\r)/gm, '<br>')
+    .replace(/^<br>/, '')
+    .replace(/<br>$/, '');
+exports.toBRFromNewLine = toBRFromNewLine;
 
 
 /***/ }),
@@ -473,7 +478,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.mdUnknownKey = exports.onWorkflowCallSecrets = exports.onWorkflowCallOutputs = exports.onWorkflowCallInputs = exports.onWorkflowCall = exports.mdReusableWorkflow = exports.mdReusableWorkflows = exports.mdCustomActionsOutputs = exports.mdCustomActionsInputs = exports.mdCustomActionsRuns = exports.mdCustomAction = exports.mdCustomActions = exports.mdAgenda = exports.mdAnnotationNote = exports.mdAnnotationExample = exports.mdFooter = exports.mdCommonHeader = exports.mdAnchorEnd = exports.mdAnchorStart = exports.mdTableColumn = exports.mdTableRows = exports.mdTablePosition = exports.mdTable = exports.mdLink = exports.mdCell = exports.mdEmphasis = exports.mdBold = exports.mdCodeBlock = exports.mdList = exports.mdNote = exports.mdH3 = exports.mdH2 = exports.mdH1 = exports.mdRaw = exports.positionMap = exports.tbSeparator = exports.divider = exports.newLine = void 0;
+exports.mdUnknownKey = exports.onWorkflowCallSecrets = exports.onWorkflowCallOutputs = exports.onWorkflowCallInputs = exports.onWorkflowCall = exports.mdReusableWorkflow = exports.mdReusableWorkflows = exports.mdCustomActionsOutputs = exports.mdCustomActionsInputs = exports.mdCustomActionsRuns = exports.mdCustomAction = exports.mdCustomActions = exports.mdAgenda = exports.mdAnnotationNote = exports.mdAnnotationExample = exports.mdFooter = exports.mdCommonHeader = exports.mdAnchorEnd = exports.mdAnchorStart = exports.mdTableColumns = exports.mdTableRows = exports.mdTablePosition = exports.mdTable = exports.mdLink = exports.mdCell = exports.mdEmphasis = exports.mdBold = exports.mdCodeBlock = exports.mdList = exports.mdNote = exports.mdH3 = exports.mdH2 = exports.mdH1 = exports.mdRaw = exports.positionMap = exports.tbSeparator = exports.divider = exports.newLine = void 0;
 const constants_1 = __importDefault(__nccwpck_require__(9349));
 const helpers_1 = __nccwpck_require__(6682);
 exports.newLine = '\n';
@@ -502,12 +507,12 @@ const mdBold = (text) => `__${text}__`;
 exports.mdBold = mdBold;
 const mdEmphasis = (text) => `\`${text}\``;
 exports.mdEmphasis = mdEmphasis;
-const mdCell = (text) => `| ${text} |`;
+const mdCell = (text) => `| ${(0, helpers_1.toBRFromNewLine)(text)} |`;
 exports.mdCell = mdCell;
 const mdLink = (text, url) => `[${text}](${url})`;
 exports.mdLink = mdLink;
 const mdTable = ({ headers, rows, positions = ['center'], }) => {
-    const header = (0, exports.mdTableColumn)(headers);
+    const header = (0, exports.mdTableColumns)(headers);
     const position = (0, exports.mdTablePosition)(positions);
     const bodyRows = (0, exports.mdTableRows)(rows);
     return `${header}${exports.newLine}${position}${exports.newLine}${bodyRows}`;
@@ -519,13 +524,15 @@ const mdTablePosition = (positions) => {
 };
 exports.mdTablePosition = mdTablePosition;
 const mdTableRows = (rows) => {
-    return rows.map((row) => (0, exports.mdTableColumn)(row)).join(exports.newLine);
+    return rows.map((row) => (0, exports.mdTableColumns)(row)).join(exports.newLine);
 };
 exports.mdTableRows = mdTableRows;
-const mdTableColumn = (row) => {
+const mdTableColumns = (row) => {
+    console.log('DEBUG: before', row.join(exports.tbSeparator));
+    console.log('DEBUG: after', (0, exports.mdCell)(row.join(exports.tbSeparator)));
     return (0, exports.mdCell)(row.join(exports.tbSeparator));
 };
-exports.mdTableColumn = mdTableColumn;
+exports.mdTableColumns = mdTableColumns;
 // =====================================
 // Reusable workflows markdown generator
 // =====================================
@@ -610,9 +617,9 @@ const mdCustomActionsInputs = (obj) => {
         return [
             String(i + 1),
             obj[key].required ? '✅' : '',
-            (0, helpers_1.ToStringSafe)(key),
-            (0, helpers_1.ToStringSafe)(obj[key].default),
-            (0, helpers_1.ToStringSafe)(obj[key].description), // description
+            (0, helpers_1.toStringSafe)(key),
+            (0, helpers_1.toStringSafe)(obj[key].default),
+            (0, helpers_1.toStringSafe)(obj[key].description), // description
         ];
     });
     const tableTitleDoc = (0, exports.mdH3)('Inputs');
@@ -632,8 +639,8 @@ const mdCustomActionsOutputs = (obj) => {
     const rows = Object.keys(obj).map((key, i) => {
         return [
             String(i + 1),
-            (0, helpers_1.ToStringSafe)(key),
-            (0, helpers_1.ToStringSafe)(obj[key].description), // description
+            (0, helpers_1.toStringSafe)(key),
+            (0, helpers_1.toStringSafe)(obj[key].description), // description
         ];
     });
     const tableTitleDoc = (0, exports.mdH3)('Outputs');
@@ -702,10 +709,10 @@ const onWorkflowCallInputs = (obj) => {
         return [
             String(i + 1),
             obj[key].required ? '✅' : '',
-            (0, helpers_1.ToStringSafe)(obj[key].type),
-            (0, helpers_1.ToStringSafe)(key),
-            (0, helpers_1.ToStringSafe)(obj[key].default),
-            (0, helpers_1.ToStringSafe)(obj[key].description), // description
+            (0, helpers_1.toStringSafe)(obj[key].type),
+            (0, helpers_1.toStringSafe)(key),
+            (0, helpers_1.toStringSafe)(obj[key].default),
+            (0, helpers_1.toStringSafe)(obj[key].description), // description
         ];
     });
     const tableTitleDoc = (0, exports.mdH3)('Inputs');
@@ -725,8 +732,8 @@ const onWorkflowCallOutputs = (obj) => {
     const rows = Object.keys(obj).map((key, i) => {
         return [
             String(i + 1),
-            (0, helpers_1.ToStringSafe)(key),
-            (0, helpers_1.ToStringSafe)(obj[key].description), // description
+            (0, helpers_1.toStringSafe)(key),
+            (0, helpers_1.toStringSafe)(obj[key].description), // description
         ];
     });
     const tableTitleDoc = (0, exports.mdH3)('Outputs');
@@ -747,8 +754,8 @@ const onWorkflowCallSecrets = (obj) => {
         return [
             String(i + 1),
             obj[key].required ? '✅' : '',
-            (0, helpers_1.ToStringSafe)(key),
-            (0, helpers_1.ToStringSafe)(obj[key].description), // description
+            (0, helpers_1.toStringSafe)(key),
+            (0, helpers_1.toStringSafe)(obj[key].description), // description
         ];
     });
     const tableTitleDoc = (0, exports.mdH3)('Secrets');
