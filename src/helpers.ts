@@ -10,7 +10,7 @@ export const log = (msg: string | any): void => {
   core.info(msg)
 }
 
-export const ToStringSafe = (str: unknown): string => {
+export const toStringSafe = (str: unknown): string => {
   switch (typeof str) {
     case 'undefined':
       return ''
@@ -36,3 +36,9 @@ export const toAnchorLink = (str: string): string =>
       .replace(/\s+/g, '-')
       .replace(/[^0-9a-zA-Z-]/, '')
   )
+
+export const toBRFromNewLine = (str: string): string =>
+  str.trim()
+     .replace(/(\r\n|\n|\r)/gm, '<br>')
+     .replace(/^<br>/, '')
+     .replace(/<br>$/, '')

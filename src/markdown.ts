@@ -1,6 +1,6 @@
 import constants from './constants'
 import { ReadYamlResult, Annotations, Annotation } from './fs'
-import { toAnchorLink, ToStringSafe } from './helpers'
+import { toAnchorLink, toStringSafe, toBRFromNewLine } from './helpers'
 import {
   ReuseableWorkflowsYaml,
   ReuseableWorkflowsYamlFileMap,
@@ -29,7 +29,7 @@ export const mdCodeBlock = (text: string): string =>
 
 export const mdBold = (text: string): string => `__${text}__`
 export const mdEmphasis = (text: string): string => `\`${text}\``
-export const mdCell = (text: string): string => `| ${text} |`
+export const mdCell = (text: string): string => `| ${toBRFromNewLine(text)} |`
 export const mdLink = (text: string, url: string): string => `[${text}](${url})`
 
 type Position = 'left' | 'center' | 'right'
@@ -44,7 +44,7 @@ export const mdTable = ({
   rows,
   positions = ['center'],
 }: MdTable): string => {
-  const header = mdTableColumn(headers)
+  const header = mdTableColumns(headers)
   const position = mdTablePosition(positions)
   const bodyRows = mdTableRows(rows)
   return `${header}${newLine}${position}${newLine}${bodyRows}`
@@ -56,10 +56,12 @@ export const mdTablePosition = (positions: Position[]): string => {
 }
 
 export const mdTableRows = (rows: string[][]): string => {
-  return rows.map((row: string[]) => mdTableColumn(row)).join(newLine)
+  return rows.map((row: string[]) => mdTableColumns(row)).join(newLine)
 }
 
-export const mdTableColumn = (row: string[]): string => {
+export const mdTableColumns = (row: string[]): string => {
+  console.log('DEBUG: before', row.join(tbSeparator))
+  console.log('DEBUG: after', mdCell(row.join(tbSeparator)))
   return mdCell(row.join(tbSeparator))
 }
 
@@ -170,9 +172,9 @@ export const mdCustomActionsInputs = (
     return [
       String(i + 1), // #
       obj[key].required ? '✅' : '', // required
-      ToStringSafe(key), // name
-      ToStringSafe(obj[key].default), // default
-      ToStringSafe(obj[key].description), // description
+      toStringSafe(key), // name
+      toStringSafe(obj[key].default), // default
+      toStringSafe(obj[key].description), // description
     ]
   })
 
@@ -195,8 +197,8 @@ export const mdCustomActionsOutputs = (
   const rows = Object.keys(obj).map((key, i) => {
     return [
       String(i + 1), // #
-      ToStringSafe(key), // name
-      ToStringSafe(obj[key].description), // description
+      toStringSafe(key), // name
+      toStringSafe(obj[key].description), // description
     ]
   })
 
@@ -280,10 +282,10 @@ export const onWorkflowCallInputs = (
     return [
       String(i + 1), // #
       obj[key].required ? '✅' : '', // required
-      ToStringSafe(obj[key].type), // type
-      ToStringSafe(key), // name
-      ToStringSafe(obj[key].default), // default
-      ToStringSafe(obj[key].description), // description
+      toStringSafe(obj[key].type), // type
+      toStringSafe(key), // name
+      toStringSafe(obj[key].default), // default
+      toStringSafe(obj[key].description), // description
     ]
   })
 
@@ -306,8 +308,8 @@ export const onWorkflowCallOutputs = (
   const rows = Object.keys(obj).map((key, i) => {
     return [
       String(i + 1), // #
-      ToStringSafe(key), // name
-      ToStringSafe(obj[key].description), // description
+      toStringSafe(key), // name
+      toStringSafe(obj[key].description), // description
     ]
   })
 
@@ -331,8 +333,8 @@ export const onWorkflowCallSecrets = (
     return [
       String(i + 1), // #
       obj[key].required ? '✅' : '', // required
-      ToStringSafe(key), // name
-      ToStringSafe(obj[key].description), // description
+      toStringSafe(key), // name
+      toStringSafe(obj[key].description), // description
     ]
   })
 
