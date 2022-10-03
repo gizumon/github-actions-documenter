@@ -36,7 +36,8 @@ on:
         required: true
         type: string
         default: README.md
-        description: "Filepath to write the generated reusable workflow document. (default: README.md)"
+        description: |
+          Filepath to write the generated reusable workflow document. (default: README.md)
       overwrite:
         required: false
         type: boolean
