@@ -116,9 +116,7 @@ Auto documentation for Github Actions workflows
 | :--- | :---: | :---: | :--- | :--- | :--- |
 | 1 | ✅ | string | filepath | README.md | Filepath to write the generated reusable workflow document. (default: README.md) |
 | 2 |  | boolean | overwrite | false | If true, overwrite the filepath file. (default: false) |
-| 3 |  | boolean | make-pull-request | false | If true, make a pull request to ref branch.
-If false, directly push to ref branch. (default: false)
- |
+| 3 |  | boolean | make-pull-request | false | If true, make a pull request to ref branch.<br>If false, directly push to ref branch. (default: false) |
 
 ### Outputs
 
