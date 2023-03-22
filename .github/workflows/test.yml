@@ -16,6 +16,7 @@ jobs:
       - run: |
           pnpm install
       - run: |
+          export NODE_OPTIONS=--openssl-legacy-provider
           pnpm run all
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
