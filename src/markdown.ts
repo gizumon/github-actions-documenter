@@ -60,8 +60,6 @@ export const mdTableRows = (rows: string[][]): string => {
 }
 
 export const mdTableColumns = (row: string[]): string => {
-  console.log('DEBUG: before', row.join(tbSeparator))
-  console.log('DEBUG: after', mdCell(row.join(tbSeparator)))
   return mdCell(row.join(tbSeparator))
 }
 

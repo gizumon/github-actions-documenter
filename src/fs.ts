@@ -158,54 +158,63 @@ const trimComments = (comments: string[]): string[] => {
 }
 
 const readCustomActionsYaml = (): ReadCustomActionsYamlResult =>
-  recursiveReadCustomActions(constants.rootDir)
+  recursiveReadCustomActions([constants.rootDir])
 
 export const recursiveReadCustomActions = (
-  dir: fs.PathLike,
+  dirs: fs.PathLike[],
   yamlMap: ReadCustomActionsYamlResult = {
     customActionsYaml: {},
     annotationMap: {},
-  }
+  },
 ): ReadCustomActionsYamlResult => {
-  const dirs: string[] = []
+  log(`Read custom actions in directory: ${dirs}, ${JSON.stringify(yamlMap)}`)
   const customActionsMap: CustomActionsYamlFileMap = {}
   const annotationMap: GithubActionsAnnotationMap = {}
-  fs.readdirSync(dir, { withFileTypes: true }).forEach((dirent) => {
-    const fPath = path.join(dir.toString(), dirent.name)
-    // if directory, recursively read its files
-    if (dirent.isDirectory()) return dirs.push(fPath)
-    if (!dirent.isFile()) return // skip if not a file
-    if (!actionsYamlRegExp.test(dirent.name)) return // skip if not a yaml file
-    try {
-      log('Read custom action file: ' + fPath)
-      const file = fs.readFileSync(fPath, 'utf-8')
-      const lines = file.split(newLine)
-      const actualLines = lines.filter((l) => !commentRegExp.test(l))
+  const nextDirs: fs.PathLike[] = []
+  dirs.forEach((dir) => {
+    fs.readdirSync(dir, { withFileTypes: true }).forEach((dirent) => {
+      const fPath = path.join(dir.toString(), dirent.name)
+      // if directory, recursively read its files
+      if (dirent.isDirectory()) {
+        if (dirent.name === 'node_modules') return
+        return nextDirs.push(fPath)
+      }
+      if (!dirent.isFile()) return // skip if not a file
+      if (!actionsYamlRegExp.test(dirent.name)) return // skip if not a yaml file
+      try {
+        log('Read custom action file: ' + fPath)
+        const file = fs.readFileSync(fPath, 'utf-8')
+        const lines = file.split(newLine)
+        const actualLines = lines.filter((l) => !commentRegExp.test(l))
 
-      const doc = yaml.load(actualLines.join(newLine)) as CustomActionsYaml
-      if (!isCustomActions(doc)) return
+        const doc = yaml.load(actualLines.join(newLine)) as CustomActionsYaml
+        if (!isCustomActions(doc)) return
 
-      log('File is a valid Custom Actions file: ' + fPath)
-      annotationMap[fPath] = parseAnnotationComments(lines)
-      customActionsMap[fPath] = doc
-    } catch (e) {
-      log('File is not a valid yml file: ' + fPath)
-      log(e instanceof Error ? e.message : e)
-    }
-  })
-  dirs.forEach((d) => {
-    yamlMap = recursiveReadCustomActions(d, {
-      customActionsYaml: {
-        ...yamlMap.customActionsYaml,
-        ...customActionsMap,
-      },
-      annotationMap: {
-        ...yamlMap.annotationMap,
-        ...annotationMap,
-      },
+        log('File is a valid Custom Actions file: ' + fPath)
+        annotationMap[fPath] = parseAnnotationComments(lines)
+        customActionsMap[fPath] = doc
+      } catch (e) {
+        log('File is not a valid yml file: ' + fPath)
+        log(e instanceof Error ? e.message : e)
+      }
     })
   })
-  return yamlMap
+  const newYamlMap = {
+    customActionsYaml: {
+      ...yamlMap.customActionsYaml,
+      ...customActionsMap,
+    },
+    annotationMap: {
+      ...yamlMap.annotationMap,
+      ...annotationMap,
+    },
+  }
+  if (nextDirs.length > 0) {
+    log('next dirs: ' + JSON.stringify(nextDirs))
+    return recursiveReadCustomActions(nextDirs, newYamlMap)
+  }
+  log('finished: recursive read Custom Actions')
+  return newYamlMap
 }
 
 const isCustomActions = (obj: CustomActionsYaml): boolean =>
