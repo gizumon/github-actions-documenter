@@ -165,7 +165,7 @@ export const recursiveReadCustomActions = (
   yamlMap: ReadCustomActionsYamlResult = {
     customActionsYaml: {},
     annotationMap: {},
-  },
+  }
 ): ReadCustomActionsYamlResult => {
   log(`Read custom actions in directory: ${dirs}, ${JSON.stringify(yamlMap)}`)
   const customActionsMap: CustomActionsYamlFileMap = {}
