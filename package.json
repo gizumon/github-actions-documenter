@@ -9,7 +9,7 @@
     "format": "prettier --write '**/*.ts'",
     "format-check": "prettier --check '**/*.ts'",
     "lint": "eslint src/**/*.ts",
-    "package": "NODE_OPTIONS=--openssl-legacy-provider ncc build --source-map --license licenses.txt",
+    "package": "ncc build --source-map --license licenses.txt",
     "test": "jest",
     "all": "pnpm run build && pnpm run format && pnpm run lint && pnpm run package && pnpm test"
   },
