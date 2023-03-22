@@ -279,7 +279,8 @@ const toAnchorLink = (str) => '#' +
         .replace(/\s+/g, '-')
         .replace(/[^0-9a-zA-Z-]/, ''));
 exports.toAnchorLink = toAnchorLink;
-const toBRFromNewLine = (str) => str.trim()
+const toBRFromNewLine = (str) => str
+    .trim()
     .replace(/(\r\n|\n|\r)/gm, '<br>')
     .replace(/^<br>/, '')
     .replace(/<br>$/, '');
