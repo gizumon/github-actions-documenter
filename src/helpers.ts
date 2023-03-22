@@ -38,7 +38,8 @@ export const toAnchorLink = (str: string): string =>
   )
 
 export const toBRFromNewLine = (str: string): string =>
-  str.trim()
-     .replace(/(\r\n|\n|\r)/gm, '<br>')
-     .replace(/^<br>/, '')
-     .replace(/<br>$/, '')
+  str
+    .trim()
+    .replace(/(\r\n|\n|\r)/gm, '<br>')
+    .replace(/^<br>/, '')
+    .replace(/<br>$/, '')

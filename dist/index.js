@@ -158,47 +158,56 @@ found = false // found annotation comment in previous line
 const trimComments = (comments) => {
     return comments.map((comment) => comment === null || comment === void 0 ? void 0 : comment.replace(commentRegExp, ''));
 };
-const readCustomActionsYaml = () => (0, exports.recursiveReadCustomActions)(constants_1.default.rootDir);
-const recursiveReadCustomActions = (dir, yamlMap = {
+const readCustomActionsYaml = () => (0, exports.recursiveReadCustomActions)([constants_1.default.rootDir]);
+const recursiveReadCustomActions = (dirs, yamlMap = {
     customActionsYaml: {},
     annotationMap: {},
 }) => {
-    const dirs = [];
+    (0, helpers_1.log)(`Read custom actions in directory: ${dirs}, ${JSON.stringify(yamlMap)}`);
     const customActionsMap = {};
     const annotationMap = {};
-    fs.readdirSync(dir, { withFileTypes: true }).forEach((dirent) => {
-        const fPath = path.join(dir.toString(), dirent.name);
-        // if directory, recursively read its files
-        if (dirent.isDirectory())
-            return dirs.push(fPath);
-        if (!dirent.isFile())
-            return; // skip if not a file
-        if (!actionsYamlRegExp.test(dirent.name))
-            return; // skip if not a yaml file
-        try {
-            (0, helpers_1.log)('Read custom action file: ' + fPath);
-            const file = fs.readFileSync(fPath, 'utf-8');
-            const lines = file.split(markdown_1.newLine);
-            const actualLines = lines.filter((l) => !commentRegExp.test(l));
-            const doc = yaml.load(actualLines.join(markdown_1.newLine));
-            if (!isCustomActions(doc))
-                return;
-            (0, helpers_1.log)('File is a valid Custom Actions file: ' + fPath);
-            annotationMap[fPath] = parseAnnotationComments(lines);
-            customActionsMap[fPath] = doc;
-        }
-        catch (e) {
-            (0, helpers_1.log)('File is not a valid yml file: ' + fPath);
-            (0, helpers_1.log)(e instanceof Error ? e.message : e);
-        }
-    });
-    dirs.forEach((d) => {
-        yamlMap = (0, exports.recursiveReadCustomActions)(d, {
-            customActionsYaml: Object.assign(Object.assign({}, yamlMap.customActionsYaml), customActionsMap),
-            annotationMap: Object.assign(Object.assign({}, yamlMap.annotationMap), annotationMap),
+    const nextDirs = [];
+    dirs.forEach((dir) => {
+        fs.readdirSync(dir, { withFileTypes: true }).forEach((dirent) => {
+            const fPath = path.join(dir.toString(), dirent.name);
+            // if directory, recursively read its files
+            if (dirent.isDirectory()) {
+                if (dirent.name === 'node_modules')
+                    return;
+                return nextDirs.push(fPath);
+            }
+            if (!dirent.isFile())
+                return; // skip if not a file
+            if (!actionsYamlRegExp.test(dirent.name))
+                return; // skip if not a yaml file
+            try {
+                (0, helpers_1.log)('Read custom action file: ' + fPath);
+                const file = fs.readFileSync(fPath, 'utf-8');
+                const lines = file.split(markdown_1.newLine);
+                const actualLines = lines.filter((l) => !commentRegExp.test(l));
+                const doc = yaml.load(actualLines.join(markdown_1.newLine));
+                if (!isCustomActions(doc))
+                    return;
+                (0, helpers_1.log)('File is a valid Custom Actions file: ' + fPath);
+                annotationMap[fPath] = parseAnnotationComments(lines);
+                customActionsMap[fPath] = doc;
+            }
+            catch (e) {
+                (0, helpers_1.log)('File is not a valid yml file: ' + fPath);
+                (0, helpers_1.log)(e instanceof Error ? e.message : e);
+            }
         });
     });
-    return yamlMap;
+    const newYamlMap = {
+        customActionsYaml: Object.assign(Object.assign({}, yamlMap.customActionsYaml), customActionsMap),
+        annotationMap: Object.assign(Object.assign({}, yamlMap.annotationMap), annotationMap),
+    };
+    if (nextDirs.length > 0) {
+        (0, helpers_1.log)('next dirs: ' + JSON.stringify(nextDirs));
+        return (0, exports.recursiveReadCustomActions)(nextDirs, newYamlMap);
+    }
+    (0, helpers_1.log)('finished: recursive read Custom Actions');
+    return newYamlMap;
 };
 exports.recursiveReadCustomActions = recursiveReadCustomActions;
 const isCustomActions = (obj) => ['name', 'description', 'runs'].every((key) => obj[key] !== undefined);
@@ -270,7 +279,8 @@ const toAnchorLink = (str) => '#' +
         .replace(/\s+/g, '-')
         .replace(/[^0-9a-zA-Z-]/, ''));
 exports.toAnchorLink = toAnchorLink;
-const toBRFromNewLine = (str) => str.trim()
+const toBRFromNewLine = (str) => str
+    .trim()
     .replace(/(\r\n|\n|\r)/gm, '<br>')
     .replace(/^<br>/, '')
     .replace(/<br>$/, '');
@@ -528,8 +538,6 @@ const mdTableRows = (rows) => {
 };
 exports.mdTableRows = mdTableRows;
 const mdTableColumns = (row) => {
-    console.log('DEBUG: before', row.join(exports.tbSeparator));
-    console.log('DEBUG: after', (0, exports.mdCell)(row.join(exports.tbSeparator)));
     return (0, exports.mdCell)(row.join(exports.tbSeparator));
 };
 exports.mdTableColumns = mdTableColumns;
