@@ -65,12 +65,12 @@ export const mdCommonHeader = (): string => {
   const note =
     mdComment(`🚀 Generated automatically by ${link} 🚀`) +
     mdComment(`Please do not edit the below manually since they are are generated automatically by this job.`)
-  return `${anchor}${divider}${newLine}${note}${newLine}`
+  return `${anchor}${newLine}${note}${newLine}`
 }
 
 export const mdFooter = (): string => {
   const anchor = mdAnchorEnd()
-  return `${divider}${anchor}`
+  return `${anchor}`
 }
 
 export const mdAnnotationExample = (annot: Annotation): string => {

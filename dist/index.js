@@ -106,7 +106,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.recursiveReadCustomActions = exports.readYamls = void 0;
+exports.readYamls = exports.isDirectory = exports.isFile = exports.existFileOrDir = exports.readYaml = exports.readLines = void 0;
 const fs = __importStar(__nccwpck_require__(5747));
 const constants_1 = __importDefault(__nccwpck_require__(9349));
 const path = __importStar(__nccwpck_require__(5622));
@@ -116,6 +116,36 @@ const markdown_1 = __nccwpck_require__(7213);
 const commentRegExp = /^\s*#/;
 const annotationRegExp = /^\s*#\s*@/;
 const actionsYamlRegExp = /^action\.ya?ml$/;
+const readLines = (fPath) => {
+    const file = fs.readFileSync(fPath, 'utf-8');
+    return file.split(markdown_1.newLine);
+};
+exports.readLines = readLines;
+const readYaml = (lines) => {
+    const actualLines = lines.filter((l) => !commentRegExp.test(l));
+    return yaml.load(actualLines.join(markdown_1.newLine));
+};
+exports.readYaml = readYaml;
+const existFileOrDir = (fPath) => fs.existsSync(fPath);
+exports.existFileOrDir = existFileOrDir;
+const isFile = (fPath) => {
+    try {
+        return fs.statSync(fPath).isFile();
+    }
+    catch (e) {
+        return false;
+    }
+};
+exports.isFile = isFile;
+const isDirectory = (fPath) => {
+    try {
+        return fs.statSync(fPath).isDirectory();
+    }
+    catch (e) {
+        return false;
+    }
+};
+exports.isDirectory = isDirectory;
 const readYamls = (props) => {
     let customActionsYaml = {};
     let workflowCallYamlMap = {};
@@ -124,9 +154,9 @@ const readYamls = (props) => {
         (0, helpers_1.log)('Skip generating Reusable Workflow documents');
     }
     else {
-        const hasTargetFilepaths = props.targetFilepaths.length > 0;
+        const hasTargetFilepaths = props.targetFilepaths.filter((fPath) => !!fPath).length > 0;
         const rwYmals = hasTargetFilepaths
-            ? readReuseableWorkflowsYamlFromTargetPaths(props)
+            ? readReuseableWorkflowsYamlFromFilepaths(props)
             : readReuseableWorkflowsYamlFromDir();
         workflowCallYamlMap = rwYmals.workflowCallYamlMap;
         annotationMap = rwYmals.annotationMap;
@@ -146,19 +176,23 @@ const readYamls = (props) => {
     };
 };
 exports.readYamls = readYamls;
-const readReuseableWorkflowsYamlFromTargetPaths = ({ targetFilepaths, }) => {
+const readReuseableWorkflowsYamlFromFilepaths = ({ targetFilepaths: fPaths, }) => {
+    (0, helpers_1.log)('Read Custom Actions from target filepaths: ' + JSON.stringify(fPaths));
     const workflowCallYamlMap = {};
     const annotationMap = {};
-    targetFilepaths.forEach((fPath) => {
-        if (!fPath.endsWith('.yml') && !fPath.endsWith('.yaml'))
+    fPaths.forEach((fPath) => {
+        if (!fPath.endsWith('.yml') && !fPath.endsWith('.yaml')) {
+            (0, helpers_1.log)('Target file is not yml file: ' + fPath);
             return;
+        }
+        if (!(0, exports.isFile)(fPath)) {
+            (0, helpers_1.log)('Target file is not file: ' + fPath);
+            return;
+        }
         (0, helpers_1.log)(`Check target file: ${fPath}`);
         try {
-            const file = fs.readFileSync(fPath, 'utf-8');
-            const lines = file.split(markdown_1.newLine);
-            const actualLines = lines.filter((l) => !commentRegExp.test(l));
-            // parse yaml file and filter workflow calls
-            const doc = yaml.load(actualLines.join(markdown_1.newLine));
+            const lines = (0, exports.readLines)(fPath);
+            const doc = (0, exports.readYaml)(lines);
             if (!isWorkflowCall(doc))
                 return;
             (0, helpers_1.log)(`File is a valid workflow_call yml file: ${fPath}`);
@@ -178,6 +212,7 @@ const readReuseableWorkflowsYamlFromTargetPaths = ({ targetFilepaths, }) => {
     };
 };
 const readReuseableWorkflowsYamlFromDir = () => {
+    (0, helpers_1.log)('Read Reusable Workflows from workflow dir: ' + constants_1.default.workflowsDir);
     const workflowCallYamlMap = {};
     const annotationMap = {};
     fs.readdirSync(constants_1.default.workflowsDir).forEach((fName) => {
@@ -186,11 +221,8 @@ const readReuseableWorkflowsYamlFromDir = () => {
         (0, helpers_1.log)('Found file: ' + fName);
         try {
             const fPath = path.join(constants_1.default.workflowsDir, fName);
-            const file = fs.readFileSync(fPath, 'utf-8');
-            const lines = file.split(markdown_1.newLine);
-            const actualLines = lines.filter((l) => !commentRegExp.test(l));
-            // parse yaml file and filter workflow calls
-            const doc = yaml.load(actualLines.join(markdown_1.newLine));
+            const lines = (0, exports.readLines)(fPath);
+            const doc = (0, exports.readYaml)(lines);
             if (!isWorkflowCall(doc))
                 return;
             (0, helpers_1.log)('File is a valid workflow_call yml file: ' + fName);
@@ -266,11 +298,12 @@ const trimComments = (comments) => {
     return comments.map((comment) => comment === null || comment === void 0 ? void 0 : comment.replace(commentRegExp, ''));
 };
 const readCustomActionsYaml = ({ targetFilepaths }) => {
-    const actionYmlsFilepaths = targetFilepaths.filter((fPath) => actionsYamlRegExp.test(fPath));
-    const hasTargetFilepaths = actionYmlsFilepaths.length > 0;
-    return (0, exports.recursiveReadCustomActions)(hasTargetFilepaths ? actionYmlsFilepaths : [constants_1.default.rootDir]);
+    const hasTargetFilepaths = targetFilepaths.filter((fPath) => !!fPath).length > 0;
+    return hasTargetFilepaths
+        ? readCustomActionsFromFilepaths(targetFilepaths)
+        : recursiveReadCustomActionsFromDir([constants_1.default.rootDir]);
 };
-const recursiveReadCustomActions = (dirs, yamlMap = {
+const recursiveReadCustomActionsFromDir = (dirs, yamlMap = {
     customActionsYaml: {},
     annotationMap: {},
 }) => {
@@ -293,10 +326,8 @@ const recursiveReadCustomActions = (dirs, yamlMap = {
                 return; // skip if not a yaml file
             try {
                 (0, helpers_1.log)('Read custom action file: ' + fPath);
-                const file = fs.readFileSync(fPath, 'utf-8');
-                const lines = file.split(markdown_1.newLine);
-                const actualLines = lines.filter((l) => !commentRegExp.test(l));
-                const doc = yaml.load(actualLines.join(markdown_1.newLine));
+                const lines = (0, exports.readLines)(fPath);
+                const doc = (0, exports.readYaml)(lines);
                 if (!isCustomActions(doc))
                     return;
                 (0, helpers_1.log)('File is a valid Custom Actions file: ' + fPath);
@@ -315,12 +346,52 @@ const recursiveReadCustomActions = (dirs, yamlMap = {
     };
     if (nextDirs.length > 0) {
         (0, helpers_1.log)('next dirs: ' + JSON.stringify(nextDirs));
-        return (0, exports.recursiveReadCustomActions)(nextDirs, newYamlMap);
+        return recursiveReadCustomActionsFromDir(nextDirs, newYamlMap);
     }
     (0, helpers_1.log)('finished: recursive read Custom Actions');
     return newYamlMap;
 };
-exports.recursiveReadCustomActions = recursiveReadCustomActions;
+const readCustomActionsFromFilepaths = (fPaths) => {
+    (0, helpers_1.log)('Read Custom Actions from target filepaths: ' + JSON.stringify(fPaths));
+    const customActionsYaml = {};
+    const annotationMap = {};
+    fPaths
+        .filter((fPath) => {
+        if (!actionsYamlRegExp.test(fPath)) {
+            (0, helpers_1.log)('Target file is not action.yml or action.yaml file: ' + fPath);
+            return false;
+        }
+        if (!fPath.endsWith('.yml') && !fPath.endsWith('.yaml')) {
+            (0, helpers_1.log)('Target file is not yml file: ' + fPath);
+            return false;
+        }
+        if (!(0, exports.isFile)(fPath)) {
+            (0, helpers_1.log)('Target file is not file: ' + fPath);
+            return false;
+        }
+        return true;
+    })
+        .forEach((fPath) => {
+        try {
+            (0, helpers_1.log)('Read target file: ' + fPath);
+            const lines = (0, exports.readLines)(fPath);
+            const doc = (0, exports.readYaml)(lines);
+            if (!isCustomActions(doc))
+                return;
+            (0, helpers_1.log)('Target file is a valid Custom Actions file: ' + fPath);
+            annotationMap[fPath] = parseAnnotationComments(lines);
+            customActionsYaml[fPath] = doc;
+        }
+        catch (e) {
+            (0, helpers_1.log)('File is not a valid yml file: ' + fPath);
+            (0, helpers_1.log)(e instanceof Error ? e.message : e);
+        }
+    });
+    return {
+        customActionsYaml,
+        annotationMap,
+    };
+};
 const isCustomActions = (obj) => ['name', 'description', 'runs'].every((key) => obj[key] !== undefined);
 
 
@@ -628,12 +699,12 @@ const mdCommonHeader = () => {
     const link = 'https://github.com/gizumon/github-actions-documenter';
     const note = (0, exports.mdComment)(`🚀 Generated automatically by ${link} 🚀`) +
         (0, exports.mdComment)(`Please do not edit the below manually since they are are generated automatically by this job.`);
-    return `${anchor}${exports.divider}${exports.newLine}${note}${exports.newLine}`;
+    return `${anchor}${exports.newLine}${note}${exports.newLine}`;
 };
 exports.mdCommonHeader = mdCommonHeader;
 const mdFooter = () => {
     const anchor = (0, exports.mdAnchorEnd)();
-    return `${exports.divider}${anchor}`;
+    return `${anchor}`;
 };
 exports.mdFooter = mdFooter;
 const mdAnnotationExample = (annot) => {
