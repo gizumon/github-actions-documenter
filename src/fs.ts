@@ -10,6 +10,7 @@ import * as path from 'path'
 import * as yaml from 'js-yaml'
 import { log } from './helpers'
 import { newLine } from './markdown'
+import { InputProps } from './actions-core'
 
 const commentRegExp = /^\s*#/
 const annotationRegExp = /^\s*#\s*@/
@@ -45,29 +46,46 @@ export interface ReadCustomActionsYamlResult {
   annotationMap: GithubActionsAnnotationMap
 }
 
-export const readYamls = (): ReadYamlResult => {
-  const { workflowCallYamlMap, annotationMap } = readReuseableWorkflowsYaml()
-  const { customActionsYaml, annotationMap: annotationMap2 } =
-    readCustomActionsYaml()
-  log('custom actions YAML: ' + JSON.stringify(customActionsYaml))
+export const readYamls = (props: InputProps): ReadYamlResult => {
+  let customActionsYaml: CustomActionsYamlFileMap = {}
+  let workflowCallYamlMap: ReuseableWorkflowsYamlFileMap = {}
+  let annotationMap: GithubActionsAnnotationMap = {}
+
+  if (props.shouldSkipGenerateReusableWorkflows) {
+    log('Skip generating Reusable Workflow documents')
+  } else {
+    const hasTargetFilepaths = props.targetFilepaths.length > 0
+    const rwYmals = hasTargetFilepaths ? readReuseableWorkflowsYamlFromTargetPaths(props) : readReuseableWorkflowsYamlFromDir()
+    workflowCallYamlMap = rwYmals.workflowCallYamlMap
+    annotationMap = rwYmals.annotationMap
+  }
+
+  if (props.shouldSkipGenerateCustomActions) {
+    log('Skip generating Custom Actions documents')
+  } else {
+    const cYmals = readCustomActionsYaml(props)
+    customActionsYaml = cYmals.customActionsYaml
+    annotationMap = {
+      ...annotationMap,
+      ...cYmals.annotationMap,
+    }
+  }
   return {
     customActionsYaml,
     workflowCallYamlMap,
-    annotationMap: {
-      ...annotationMap,
-      ...annotationMap2,
-    },
+    annotationMap,
   }
 }
 
-const readReuseableWorkflowsYaml = (): ReadReusableWorkflowsYamlResult => {
+const readReuseableWorkflowsYamlFromTargetPaths = ({
+  targetFilepaths,
+}: InputProps): ReadReusableWorkflowsYamlResult => {
   const workflowCallYamlMap: ReuseableWorkflowsYamlFileMap = {}
   const annotationMap: GithubActionsAnnotationMap = {}
-  fs.readdirSync(constants.workflowsDir).forEach((fName) => {
-    if (!fName.endsWith('.yml')) return
-    log('Found file: ' + fName)
+  targetFilepaths.forEach((fPath: string) => {
+    if (!fPath.endsWith('.yml') && !fPath.endsWith('.yaml')) return
+    log(`Check target file: ${fPath}`)
     try {
-      const fPath = path.join(constants.workflowsDir, fName)
       const file = fs.readFileSync(fPath, 'utf-8')
       const lines = file.split(newLine)
       const actualLines = lines.filter((l) => !commentRegExp.test(l))
@@ -77,12 +95,12 @@ const readReuseableWorkflowsYaml = (): ReadReusableWorkflowsYamlResult => {
 
       if (!isWorkflowCall(doc)) return
 
-      log('File is a valid workflow_call yml file: ' + fName)
+      log(`File is a valid workflow_call yml file: ${fPath}`)
       workflowCallYamlMap[fPath] = doc
       annotationMap[fPath] = parseAnnotationComments(lines)
       return
     } catch (e) {
-      log('File is not a valid yml file: ' + fName)
+      log(`File is a valid workflow_call yml file: ${fPath}`)
       log(e instanceof Error ? e.message : e)
       return
     }
@@ -92,6 +110,40 @@ const readReuseableWorkflowsYaml = (): ReadReusableWorkflowsYamlResult => {
     annotationMap,
   }
 }
+
+const readReuseableWorkflowsYamlFromDir =
+  (): ReadReusableWorkflowsYamlResult => {
+    const workflowCallYamlMap: ReuseableWorkflowsYamlFileMap = {}
+    const annotationMap: GithubActionsAnnotationMap = {}
+    fs.readdirSync(constants.workflowsDir).forEach((fName) => {
+      if (!fName.endsWith('.yml')) return
+      log('Found file: ' + fName)
+      try {
+        const fPath = path.join(constants.workflowsDir, fName)
+        const file = fs.readFileSync(fPath, 'utf-8')
+        const lines = file.split(newLine)
+        const actualLines = lines.filter((l) => !commentRegExp.test(l))
+
+        // parse yaml file and filter workflow calls
+        const doc = yaml.load(actualLines.join(newLine)) as GitHubActionsYaml
+
+        if (!isWorkflowCall(doc)) return
+
+        log('File is a valid workflow_call yml file: ' + fName)
+        workflowCallYamlMap[fPath] = doc
+        annotationMap[fPath] = parseAnnotationComments(lines)
+        return
+      } catch (e) {
+        log('File is not a valid yml file: ' + fName)
+        log(e instanceof Error ? e.message : e)
+        return
+      }
+    })
+    return {
+      workflowCallYamlMap,
+      annotationMap,
+    }
+  }
 
 const isWorkflowCall = (obj: GitHubActionsYaml): boolean => {
   if (obj.on && obj.on.workflow_call) return true
@@ -157,8 +209,17 @@ const trimComments = (comments: string[]): string[] => {
   return comments.map((comment) => comment?.replace(commentRegExp, ''))
 }
 
-const readCustomActionsYaml = (): ReadCustomActionsYamlResult =>
-  recursiveReadCustomActions([constants.rootDir])
+const readCustomActionsYaml = ({
+  targetFilepaths,
+}: InputProps): ReadCustomActionsYamlResult => {
+  const actionYmlsFilepaths = targetFilepaths.filter((fPath) =>
+    actionsYamlRegExp.test(fPath)
+  )
+  const hasTargetFilepaths = actionYmlsFilepaths.length > 0
+  return recursiveReadCustomActions(
+    hasTargetFilepaths ? actionYmlsFilepaths : [constants.rootDir]
+  )
+}
 
 export const recursiveReadCustomActions = (
   dirs: fs.PathLike[],

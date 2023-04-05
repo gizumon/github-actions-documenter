@@ -22,10 +22,9 @@ export const mdH1 = (text: string): string => `# ${text}${newLine}`
 export const mdH2 = (text: string): string => `## ${text}${newLine}`
 export const mdH3 = (text: string): string => `### ${text}${newLine}`
 export const mdNote = (text: string): string => `> ${text}${newLine}`
-export const mdList = (texts: string[]): string =>
-  texts.map((text: string) => `* ${text}`).join(newLine) + newLine
-export const mdCodeBlock = (text: string): string =>
-  `\`\`\`${newLine}${text}${newLine}\`\`\`${newLine}`
+export const mdComment = (text: string): string => `<!-- ${text} -->${newLine}`
+export const mdList = (texts: string[]): string => texts.map((text: string) => `* ${text}`).join(newLine) + newLine
+export const mdCodeBlock = (text: string, type: string = ''): string => `\`\`\`${type}${newLine}${text}${newLine}\`\`\`${newLine}`
 
 export const mdBold = (text: string): string => `__${text}__`
 export const mdEmphasis = (text: string): string => `\`${text}\``
@@ -49,40 +48,27 @@ export const mdTable = ({
   const bodyRows = mdTableRows(rows)
   return `${header}${newLine}${position}${newLine}${bodyRows}`
 }
-
 export const mdTablePosition = (positions: Position[]): string => {
   const tbPositions = positions.map((p) => positionMap[p] || positionMap.center)
   return mdCell(tbPositions.join(tbSeparator))
 }
-
-export const mdTableRows = (rows: string[][]): string => {
-  return rows.map((row: string[]) => mdTableColumns(row)).join(newLine)
-}
-
-export const mdTableColumns = (row: string[]): string => {
-  return mdCell(row.join(tbSeparator))
-}
+export const mdTableRows = (rows: string[][]): string => (rows.map((row: string[]) => mdTableColumns(row)).join(newLine))
+export const mdTableColumns = (row: string[]): string => (mdCell(row.join(tbSeparator)))
 
 // =====================================
 // Reusable workflows markdown generator
 // =====================================
 
-export const mdAnchorStart = (): string =>
-  `[](${constants.anchorAnnotation}=start)${newLine}`
-export const mdAnchorEnd = (): string =>
-  `[](${constants.anchorAnnotation}=end)${newLine}`
+export const mdAnchorStart = (): string => mdComment(`${constants.anchorAnnotation}=start`)
+export const mdAnchorEnd = (): string => mdComment(`${constants.anchorAnnotation}=end`)
 
 export const mdCommonHeader = (): string => {
   const anchor = mdAnchorStart()
   const link = 'https://github.com/gizumon/github-actions-documenter'
   const note =
-    mdNote(
-      `🚀 Generated automatically by [github-actions-documenter](${link}) 🚀`
-    ) +
-    mdNote(
-      `⚠️ This was generated automatically. Please do not edit the below manually.${newLine}`
-    )
-  return `${anchor}${divider}${newLine}${note}`
+    mdComment(`🚀 Generated automatically by ${link} 🚀`) +
+    mdComment(`Please do not edit the below manually since they are are generated automatically by this job.`)
+  return `${anchor}${divider}${newLine}${note}${newLine}`
 }
 
 export const mdFooter = (): string => {
@@ -92,7 +78,7 @@ export const mdFooter = (): string => {
 
 export const mdAnnotationExample = (annot: Annotation): string => {
   const title = annot.arg ? mdRaw(annot.arg) : mdBold(`Example:${newLine}`)
-  const example = mdCodeBlock(annot.block.join(newLine))
+  const example = mdCodeBlock(annot.block.join(newLine), 'yaml')
   return `${title}${newLine}${example}`
 }
 
@@ -157,8 +143,7 @@ export const mdCustomAction = (
   return `${contentDoc}${notesDoc}`
 }
 
-export const mdCustomActionsRuns = (runs: CustomActionsYaml['runs']): string =>
-  `${mdEmphasis(`using: ${runs.using}`)}${newLine}`
+export const mdCustomActionsRuns = (runs: CustomActionsYaml['runs']): string => `${mdEmphasis(`using: ${runs.using}`)}${newLine}`
 
 export const mdCustomActionsInputs = (
   obj: CustomActionsYaml['inputs']

@@ -50,7 +50,8 @@
       "prefer-template": "off",
       "github/array-foreach": "off",
       "eslint-comments/no-unused-disable": "off",
-      "prettier/prettier": "warn"
+      "prettier/prettier": "warn",
+      "max-line-length": [true, { "limit": 120 }]
     },
     "env": {
       "node": true,

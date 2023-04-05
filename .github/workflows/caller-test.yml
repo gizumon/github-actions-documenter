@@ -14,8 +14,83 @@ on:
       - '.github/workflows/*.yml'
 
 jobs:
-  test:
-    uses: gizumon/github-actions-documenter/.github/workflows/github-actions-documenter.yml@main
+  test-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - id: test-no-parameter
+        name: Test Custom Actions
+        uses: ./action.yml
+
+      - id: test-skip-generate-agenda
+        name: Test Custom Actions (Skip Agenda)
+        uses: ./action.yml
+        with:
+          target-filepaths: ""
+          should-skip-generate-agenda: true
+          should-skip-generate-custom-actions: false
+          should-skip-generate-reusable-workflows: false
+
+      - id: test-skip-generate-custom-actions
+        name: Test Custom Actions (Skip Custom Actions)
+        uses: ./action.yml
+        with:
+          target-filepaths: ""
+          should-skip-generate-agenda: false
+          should-skip-generate-custom-actions: true
+          should-skip-generate-reusable-workflows: false
+
+      - id: test-skip-generate-reusable-workflows
+        name: Test Custom Actions (Skip Reusable Workflows)
+        uses: ./action.yml
+        with:
+          target-filepaths: ""
+          should-skip-generate-agenda: false
+          should-skip-generate-custom-actions: false
+          should-skip-generate-reusable-workflows: true
+
+      - id: test-target-filepaths-single
+        name: Test Custom Actions (Specify Single target filepath)
+        uses: ./action.yml
+        with:
+          target-filepaths: "action.yml"
+          should-skip-generate-agenda: false
+          should-skip-generate-custom-actions: false
+          should-skip-generate-reusable-workflows: false
+
+      - id: test-target-filepaths-single
+        name: Test Custom Actions (Specify multiple target filepaths)
+        uses: ./action.yml
+        with:
+          target-filepaths: |
+            action.yml
+            .github/workflows/github-actions-documenter.yml
+          should-skip-generate-agenda: false
+          should-skip-generate-custom-actions: false
+          should-skip-generate-reusable-workflows: false
+
+      - id: test-target-filepaths-not-exist
+        name: Test Custom Actions (Specify not exist target filepaths)
+        uses: ./action.yml
+        with:
+          target-filepaths: |
+            not-found.yml
+          should-skip-generate-agenda: false
+          should-skip-generate-custom-actions: false
+          should-skip-generate-reusable-workflows: false
+
+      - name: Show output
+        run: |
+          echo -e "test-no-parameter:\n${{ steps.test-no-parameter.outputs.output }}"
+          echo -e "test-skip-generate-agenda:\n${{ steps.test-skip-generate-agenda.outputs.output }}"
+          echo -e "test-skip-generate-custom-actions:\n${{ steps.test-skip-generate-custom-actions.outputs.output }}"
+          echo -e "test-skip-generate-reusable-workflows:\n${{ steps.test-skip-generate-reusable-workflows.outputs.output }}"
+          echo -e "test-target-filepaths-single:\n${{ steps.test-target-filepaths-single.outputs.output }}"
+          echo -e "test-target-filepaths-multiple:\n${{ steps.test-target-filepaths-multiple.outputs.output }}"
+          echo -e "test-target-filepaths-not-exist:\n${{ steps.test-target-filepaths-not-exist.outputs.output }}"
+
+  test-reusable-workflow:
+    uses: ./.github/workflows/github-actions-documenter.yml@main
     with:
       filepath: README.md
 
