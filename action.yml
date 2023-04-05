@@ -4,6 +4,19 @@
 #     name: "Generate document"
 #     uses: gizumon/github-actions-documenter@main
 
+# @example=### Example with parameters
+# steps:
+#   - id: documenter
+#     name: "Generate document"
+#     uses: gizumon/github-actions-documenter@main
+#     with:
+#       target-filepaths: |
+#         action.yml
+#         .github/workflows/github-actions-documenter.yml
+#       should-skip-generate-agenda: true
+#       should-skip-generate-custom-actions: false
+#       should-skip-generate-reusable-workflows: false
+
 name: 'GitHub Actions documenter'
 description: 'Auto documentation for Github Actions workflows'
 author: 'tomoatsu.sekikawa'
@@ -12,7 +25,41 @@ branding:
   icon: 'book-open'
   color: 'green'
 
-# inputs:
+inputs:
+  target-filepaths:
+    required: false
+    default: ""
+    description: |
+      Target filepaths for generating Custom Actions and Reusable Workflows.
+      If not specified, all Custom Actions and Reusable Workflows files in the repository will be documented. (default: "")
+  should-skip-generate-agenda:
+    required: false
+    default: "false"
+    description: |
+      If true, skip generating Agenda document. (default: false)
+  should-skip-generate-custom-actions:
+    required: false
+    default: "false"
+    description: |
+      If true, skip generating Custom Actions document. (default: false)
+  should-skip-generate-reusable-workflows:
+    required: false
+    default: "false"
+    description: |
+      If true, skip generating Reusable Workflows document. (default: false)
+
+
+outputs:
+  output:
+     description: 'GitHub Actions markdown documents including Custom Actions and Reusable Workflows'
+  agenda-ca:
+    description: 'Agenda for Custom Actions markdown documents'
+  output-ca:
+    description: 'Custom Actions markdown documents'
+  agenda-rw:
+    description: 'Agenda for Reusable Workflows markdown documents'
+  output-rw:
+    description: 'Reusable Workflows markdown documents'
   # output-filepath:
   #   required: true
   #   default: "README.md"
@@ -33,18 +80,6 @@ branding:
   #   required: false
   #   default: "false"
   #   description: 'Generate document and set output result only. (default: false)'
-
-outputs:
-  output:
-     description: 'GitHub Actions markdown documents including Custom Actions and Reusable Workflows'
-  agenda-ca:
-    description: 'Agenda for Custom Actions markdown documents'
-  output-ca:
-    description: 'Custom Actions markdown documents'
-  agenda-rw:
-    description: 'Agenda for Reusable Workflows markdown documents'
-  output-rw:
-    description: 'Reusable Workflows markdown documents'
 
 runs:
   using: 'node16'

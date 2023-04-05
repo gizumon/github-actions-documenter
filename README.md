@@ -62,6 +62,30 @@ Auto documentation for Github Actions workflows
      uses: gizumon/github-actions-documenter@main
 ```
 
+### Example with parameters
+
+```
+ steps:
+   - id: documenter
+     name: "Generate document"
+     uses: gizumon/github-actions-documenter@main
+     with:
+       target-filepaths: |
+         action.yml
+         .github/workflows/github-actions-documenter.yml
+       should-skip-generate-agenda: true
+       should-skip-generate-custom-actions: false
+       should-skip-generate-reusable-workflows: false
+```
+
+### Inputs
+
+| # | Required | Name | Default | Description |
+| :--- | :---: | :--- | :--- | :--- |
+| 1 |  | target-filepaths |  | Target filepaths for generating Custom Actions and Reusable Workflows.<br>If not specified, all Custom Actions and Reusable Workflows files in the repository will be documented. (default: "") |
+| 2 |  | should-skip-generate-agenda | false | If true, skip generating Agenda document. (default: false) |
+| 3 |  | should-skip-generate-custom-actions | false | If true, skip generating Custom Actions document. (default: false) |
+| 4 |  | should-skip-generate-reusable-workflows | false | If true, skip generating Reusable Workflows document. (default: false) |
 
 ### Outputs
 

@@ -1,53 +1,25 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable prettier/prettier */
-import * as core from '@actions/core'
-// import * as github from '@actions/github'
-// import * as exec from '@actions/exec'
-
-import {
-  mdCommonHeader,
-  mdCustomActions,
-  mdReusableWorkflows,
-  newLine,
-  mdFooter,
-  mdAgenda,
-  mdH1,
-} from './markdown'
+import { mdCommonHeader, mdCustomActions, mdReusableWorkflows, newLine, mdFooter, mdAgenda, mdH1 } from './markdown'
 import { readYamls, ReadYamlResult } from './fs'
 import { log } from './helpers'
-
-interface Props {
-  overwrite: boolean
-  output: string
-  generateOnly?: boolean
-  githubBaseUrl?: string
-  shouldMakePullRequest?: boolean
-}
-const getProps = (): Props => ({
-  overwrite: core.getInput('overwrite') === 'true',
-  output: core.getInput('output-filepath'),
-  generateOnly: core.getInput('generate-only') === 'true',
-  githubBaseUrl: core.getInput('github-base-url'),
-  shouldMakePullRequest: core.getInput('make-pull-request') === 'true',
-})
+import { getProps, InputProps, setFailed, setOutputs } from './actions-core'
 
 const runMain = async (): Promise<void> => {
+  log('Run github-actions-documenter ...')
   try {
-    log('Run github-actions-documenter ...')
+    const props: InputProps = getProps()
+    log(`Show input parameters: ${JSON.stringify(props)}`)
 
-    const props: Props = getProps()
-    log(`props: ${JSON.stringify(props)} ...`)
+    if (props.shouldSkipGenerateCustomActions && props.shouldSkipGenerateReusableWorkflows) {
+      log('Skip generating Custom Actions and Reusable Workflows')
+      return
+    }
 
     // read yml file
-    const readYamlResult = readYamls()
-    const results = makeResult(readYamlResult)
+    const readYamlResult = readYamls(props)
+    const results = makeResult(readYamlResult, props)
 
-    core.setOutput('output', results.output)
-    core.setOutput('output-ca', results.caContent)
-    core.setOutput('agenda-ca', results.caAgenda)
-    core.setOutput('output-rw', results.rwContent)
-    core.setOutput('agenda-rw', results.rwAgenda)
-    log('Done generate markdown processes ...')
+    setOutputs(results)
+    log('Done generate markdown processes ...🎉')
     log(results.output)
 
     // const token = process.env.GITHUB_TOKEN || ''
@@ -118,9 +90,7 @@ const runMain = async (): Promise<void> => {
     //   }
     // }
   } catch (err) {
-    core.setFailed(
-      err instanceof Error ? err.message : `Unknown error: ${String(err)}`
-    )
+    setFailed(err instanceof Error ? err.message : `Unknown error: ${String(err)}`)
   }
 }
 
@@ -138,7 +108,7 @@ interface MdDocs {
   rwAgenda: string
 }
 
-const makeResult = (yamlObj: ReadYamlResult): MdDocs => {
+const makeResult = (yamlObj: ReadYamlResult, props: InputProps): MdDocs => {
   const commonDocs = {
     header: '',
     footer: '',
@@ -174,7 +144,7 @@ const makeResult = (yamlObj: ReadYamlResult): MdDocs => {
     log('Custom Actions yaml file found')
     caDocs.caTitle = mdH1('🔰 Custom Actions 🔰')
     caDocs.caContent = mdCustomActions(yamlObj)
-    caDocs.caAgenda = mdAgenda(yamlObj.customActionsYaml)
+    caDocs.caAgenda = props.shouldSkipGenerateAgenda ? '' : mdAgenda(yamlObj.customActionsYaml)
     caDocs.ca = `${caDocs.caTitle}${newLine}${caDocs.caAgenda}${newLine}${caDocs.caContent}${newLine}`
   }
   if (hasRwDoc) {
@@ -182,7 +152,7 @@ const makeResult = (yamlObj: ReadYamlResult): MdDocs => {
     log('Reusable Workflows yaml file found')
     rwDocs.rwTitle = mdH1('🔰 Reusable Workflows 🔰')
     rwDocs.rwContent = mdReusableWorkflows(yamlObj)
-    rwDocs.rwAgenda = mdAgenda(yamlObj.workflowCallYamlMap)
+    rwDocs.rwAgenda = props.shouldSkipGenerateAgenda ? '' : mdAgenda(yamlObj.workflowCallYamlMap)
     rwDocs.rw = `${rwDocs.rwTitle}${newLine}${rwDocs.rwAgenda}${newLine}${rwDocs.rwContent}${newLine}`
   }
   // set output result
