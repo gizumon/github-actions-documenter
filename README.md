@@ -36,12 +36,10 @@ For adding further documentation, comment annotation features are supported on t
 * 2022/08/10: First creation v0.0.1
 * 2022/08/10: Readme update v0.0.2
 
-[](@overwrite-anchor=start)
+<!-- @overwrite-anchor=start -->
 
----
-
-> 🚀 Generated automatically by [github-actions-documenter](https://github.com/gizumon/github-actions-documenter) 🚀
-> ⚠️ This was generated automatically. Please do not edit the below manually.
+<!-- 🚀 Generated automatically by https://github.com/gizumon/github-actions-documenter 🚀 -->
+<!-- Please do not edit the below manually since they are are generated automatically by this job. -->
 
 # 🔰 Custom Actions 🔰
 
@@ -55,7 +53,7 @@ Auto documentation for Github Actions workflows
 
 ### Basic example
 
-```
+```yaml
  steps:
    - id: documenter
      name: "Generate document"
@@ -64,7 +62,7 @@ Auto documentation for Github Actions workflows
 
 ### Example with parameters
 
-```
+```yaml
  steps:
    - id: documenter
      name: "Generate document"
@@ -104,7 +102,7 @@ Auto documentation for Github Actions workflows
 ## 1: Document Generate Reusable Workflow
 ### Example1: Basic example
 
-```
+```yaml
  name: "Basic example"
  on:
    pull_request:
@@ -119,7 +117,7 @@ Auto documentation for Github Actions workflows
 
 ### Example2: Advanced example
 
-```
+```yaml
  name: "Advanced example"
  on:
    pull_request:
@@ -153,7 +151,5 @@ Auto documentation for Github Actions workflows
  - push
  - pull_request
 
-
----
-[](@overwrite-anchor=end)
+<!-- @overwrite-anchor=end -->
 
