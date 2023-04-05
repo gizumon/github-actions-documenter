@@ -1,12 +1,4 @@
-import {
-  mdCommonHeader,
-  mdCustomActions,
-  mdReusableWorkflows,
-  newLine,
-  mdFooter,
-  mdAgenda,
-  mdH1,
-} from './markdown'
+import { mdCommonHeader, mdCustomActions, mdReusableWorkflows, newLine, mdFooter, mdAgenda, mdH1 } from './markdown'
 import { readYamls, ReadYamlResult } from './fs'
 import { log } from './helpers'
 import { getProps, InputProps, setFailed, setOutputs } from './actions-core'
@@ -98,9 +90,7 @@ const runMain = async (): Promise<void> => {
     //   }
     // }
   } catch (err) {
-    setFailed(
-      err instanceof Error ? err.message : `Unknown error: ${String(err)}`
-    )
+    setFailed(err instanceof Error ? err.message : `Unknown error: ${String(err)}`)
   }
 }
 

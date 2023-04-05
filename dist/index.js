@@ -1,6 +1,63 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 2691:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.setFailed = exports.setOutputs = exports.getProps = void 0;
+const core = __importStar(__nccwpck_require__(7535));
+const getProps = () => ({
+    targetFilepaths: core.getInput('target-filepaths') ? core.getInput('target-filepaths').split('\n') : [],
+    shouldSkipGenerateCustomActions: core.getInput('should-skip-generate-custom-actions') === 'true',
+    shouldSkipGenerateReusableWorkflows: core.getInput('should-skip-generate-reusable-workflows') === 'true',
+    shouldSkipGenerateAgenda: core.getInput('should-skip-generate-agenda') === 'true',
+    // overwrite: core.getInput('overwrite') === 'true',
+    // output: core.getInput('output-filepath'),
+    // generateOnly: core.getInput('generate-only') === 'true',
+    // githubBaseUrl: core.getInput('github-base-url'),
+    // shouldMakePullRequest: core.getInput('make-pull-request') === 'true',
+});
+exports.getProps = getProps;
+const setOutputs = (outputs) => {
+    core.setOutput('output', outputs.output);
+    core.setOutput('output-ca', outputs.caContent);
+    core.setOutput('agenda-ca', outputs.caAgenda);
+    core.setOutput('output-rw', outputs.rwContent);
+    core.setOutput('agenda-rw', outputs.rwAgenda);
+};
+exports.setOutputs = setOutputs;
+const setFailed = (errMsg) => core.setFailed(errMsg);
+exports.setFailed = setFailed;
+
+
+/***/ }),
+
 /***/ 9349:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -59,18 +116,68 @@ const markdown_1 = __nccwpck_require__(7213);
 const commentRegExp = /^\s*#/;
 const annotationRegExp = /^\s*#\s*@/;
 const actionsYamlRegExp = /^action\.ya?ml$/;
-const readYamls = () => {
-    const { workflowCallYamlMap, annotationMap } = readReuseableWorkflowsYaml();
-    const { customActionsYaml, annotationMap: annotationMap2 } = readCustomActionsYaml();
-    (0, helpers_1.log)('custom actions YAML: ' + JSON.stringify(customActionsYaml));
+const readYamls = (props) => {
+    let customActionsYaml = {};
+    let workflowCallYamlMap = {};
+    let annotationMap = {};
+    if (props.shouldSkipGenerateReusableWorkflows) {
+        (0, helpers_1.log)('Skip generating Reusable Workflow documents');
+    }
+    else {
+        const hasTargetFilepaths = props.targetFilepaths.length > 0;
+        const rwYmals = hasTargetFilepaths
+            ? readReuseableWorkflowsYamlFromTargetPaths(props)
+            : readReuseableWorkflowsYamlFromDir();
+        workflowCallYamlMap = rwYmals.workflowCallYamlMap;
+        annotationMap = rwYmals.annotationMap;
+    }
+    if (props.shouldSkipGenerateCustomActions) {
+        (0, helpers_1.log)('Skip generating Custom Actions documents');
+    }
+    else {
+        const cYmals = readCustomActionsYaml(props);
+        customActionsYaml = cYmals.customActionsYaml;
+        annotationMap = Object.assign(Object.assign({}, annotationMap), cYmals.annotationMap);
+    }
     return {
         customActionsYaml,
         workflowCallYamlMap,
-        annotationMap: Object.assign(Object.assign({}, annotationMap), annotationMap2),
+        annotationMap,
     };
 };
 exports.readYamls = readYamls;
-const readReuseableWorkflowsYaml = () => {
+const readReuseableWorkflowsYamlFromTargetPaths = ({ targetFilepaths, }) => {
+    const workflowCallYamlMap = {};
+    const annotationMap = {};
+    targetFilepaths.forEach((fPath) => {
+        if (!fPath.endsWith('.yml') && !fPath.endsWith('.yaml'))
+            return;
+        (0, helpers_1.log)(`Check target file: ${fPath}`);
+        try {
+            const file = fs.readFileSync(fPath, 'utf-8');
+            const lines = file.split(markdown_1.newLine);
+            const actualLines = lines.filter((l) => !commentRegExp.test(l));
+            // parse yaml file and filter workflow calls
+            const doc = yaml.load(actualLines.join(markdown_1.newLine));
+            if (!isWorkflowCall(doc))
+                return;
+            (0, helpers_1.log)(`File is a valid workflow_call yml file: ${fPath}`);
+            workflowCallYamlMap[fPath] = doc;
+            annotationMap[fPath] = parseAnnotationComments(lines);
+            return;
+        }
+        catch (e) {
+            (0, helpers_1.log)(`File is a valid workflow_call yml file: ${fPath}`);
+            (0, helpers_1.log)(e instanceof Error ? e.message : e);
+            return;
+        }
+    });
+    return {
+        workflowCallYamlMap,
+        annotationMap,
+    };
+};
+const readReuseableWorkflowsYamlFromDir = () => {
     const workflowCallYamlMap = {};
     const annotationMap = {};
     fs.readdirSync(constants_1.default.workflowsDir).forEach((fName) => {
@@ -158,7 +265,11 @@ found = false // found annotation comment in previous line
 const trimComments = (comments) => {
     return comments.map((comment) => comment === null || comment === void 0 ? void 0 : comment.replace(commentRegExp, ''));
 };
-const readCustomActionsYaml = () => (0, exports.recursiveReadCustomActions)([constants_1.default.rootDir]);
+const readCustomActionsYaml = ({ targetFilepaths }) => {
+    const actionYmlsFilepaths = targetFilepaths.filter((fPath) => actionsYamlRegExp.test(fPath));
+    const hasTargetFilepaths = actionYmlsFilepaths.length > 0;
+    return (0, exports.recursiveReadCustomActions)(hasTargetFilepaths ? actionYmlsFilepaths : [constants_1.default.rootDir]);
+};
 const recursiveReadCustomActions = (dirs, yamlMap = {
     customActionsYaml: {},
     annotationMap: {},
@@ -246,7 +357,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.toBRFromNewLine = exports.toAnchorLink = exports.toStringSafe = exports.log = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const core = __importStar(__nccwpck_require__(6914));
+const core = __importStar(__nccwpck_require__(7535));
 // const isDebug = core.getInput('debug') === 'true'
 // TODO: Fix this
 const log = (msg) => {
@@ -294,29 +405,6 @@ exports.toBRFromNewLine = toBRFromNewLine;
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -327,35 +415,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable prettier/prettier */
-const core = __importStar(__nccwpck_require__(6914));
-// import * as github from '@actions/github'
-// import * as exec from '@actions/exec'
 const markdown_1 = __nccwpck_require__(7213);
 const fs_1 = __nccwpck_require__(438);
 const helpers_1 = __nccwpck_require__(6682);
-const getProps = () => ({
-    overwrite: core.getInput('overwrite') === 'true',
-    output: core.getInput('output-filepath'),
-    generateOnly: core.getInput('generate-only') === 'true',
-    githubBaseUrl: core.getInput('github-base-url'),
-    shouldMakePullRequest: core.getInput('make-pull-request') === 'true',
-});
+const actions_core_1 = __nccwpck_require__(2691);
 const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, helpers_1.log)('Run github-actions-documenter ...');
     try {
-        (0, helpers_1.log)('Run github-actions-documenter ...');
-        const props = getProps();
-        (0, helpers_1.log)(`props: ${JSON.stringify(props)} ...`);
+        const props = (0, actions_core_1.getProps)();
+        (0, helpers_1.log)(`Show input parameters: ${JSON.stringify(props)}`);
+        if (props.shouldSkipGenerateCustomActions && props.shouldSkipGenerateReusableWorkflows) {
+            (0, helpers_1.log)('Skip generating Custom Actions and Reusable Workflows');
+            return;
+        }
         // read yml file
-        const readYamlResult = (0, fs_1.readYamls)();
-        const results = makeResult(readYamlResult);
-        core.setOutput('output', results.output);
-        core.setOutput('output-ca', results.caContent);
-        core.setOutput('agenda-ca', results.caAgenda);
-        core.setOutput('output-rw', results.rwContent);
-        core.setOutput('agenda-rw', results.rwAgenda);
-        (0, helpers_1.log)('Done generate markdown processes ...');
+        const readYamlResult = (0, fs_1.readYamls)(props);
+        const results = makeResult(readYamlResult, props);
+        (0, actions_core_1.setOutputs)(results);
+        (0, helpers_1.log)('Done generate markdown processes ...🎉');
         (0, helpers_1.log)(results.output);
         // const token = process.env.GITHUB_TOKEN || ''
         // log('token: ' + token)
@@ -424,10 +501,10 @@ const runMain = () => __awaiter(void 0, void 0, void 0, function* () {
         // }
     }
     catch (err) {
-        core.setFailed(err instanceof Error ? err.message : `Unknown error: ${String(err)}`);
+        (0, actions_core_1.setFailed)(err instanceof Error ? err.message : `Unknown error: ${String(err)}`);
     }
 });
-const makeResult = (yamlObj) => {
+const makeResult = (yamlObj, props) => {
     const commonDocs = {
         header: '',
         footer: '',
@@ -459,7 +536,7 @@ const makeResult = (yamlObj) => {
         (0, helpers_1.log)('Custom Actions yaml file found');
         caDocs.caTitle = (0, markdown_1.mdH1)('🔰 Custom Actions 🔰');
         caDocs.caContent = (0, markdown_1.mdCustomActions)(yamlObj);
-        caDocs.caAgenda = (0, markdown_1.mdAgenda)(yamlObj.customActionsYaml);
+        caDocs.caAgenda = props.shouldSkipGenerateAgenda ? '' : (0, markdown_1.mdAgenda)(yamlObj.customActionsYaml);
         caDocs.ca = `${caDocs.caTitle}${markdown_1.newLine}${caDocs.caAgenda}${markdown_1.newLine}${caDocs.caContent}${markdown_1.newLine}`;
     }
     if (hasRwDoc) {
@@ -467,7 +544,7 @@ const makeResult = (yamlObj) => {
         (0, helpers_1.log)('Reusable Workflows yaml file found');
         rwDocs.rwTitle = (0, markdown_1.mdH1)('🔰 Reusable Workflows 🔰');
         rwDocs.rwContent = (0, markdown_1.mdReusableWorkflows)(yamlObj);
-        rwDocs.rwAgenda = (0, markdown_1.mdAgenda)(yamlObj.workflowCallYamlMap);
+        rwDocs.rwAgenda = props.shouldSkipGenerateAgenda ? '' : (0, markdown_1.mdAgenda)(yamlObj.workflowCallYamlMap);
         rwDocs.rw = `${rwDocs.rwTitle}${markdown_1.newLine}${rwDocs.rwAgenda}${markdown_1.newLine}${rwDocs.rwContent}${markdown_1.newLine}`;
     }
     // set output result
@@ -488,7 +565,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.mdUnknownKey = exports.onWorkflowCallSecrets = exports.onWorkflowCallOutputs = exports.onWorkflowCallInputs = exports.onWorkflowCall = exports.mdReusableWorkflow = exports.mdReusableWorkflows = exports.mdCustomActionsOutputs = exports.mdCustomActionsInputs = exports.mdCustomActionsRuns = exports.mdCustomAction = exports.mdCustomActions = exports.mdAgenda = exports.mdAnnotationNote = exports.mdAnnotationExample = exports.mdFooter = exports.mdCommonHeader = exports.mdAnchorEnd = exports.mdAnchorStart = exports.mdTableColumns = exports.mdTableRows = exports.mdTablePosition = exports.mdTable = exports.mdLink = exports.mdCell = exports.mdEmphasis = exports.mdBold = exports.mdCodeBlock = exports.mdList = exports.mdNote = exports.mdH3 = exports.mdH2 = exports.mdH1 = exports.mdRaw = exports.positionMap = exports.tbSeparator = exports.divider = exports.newLine = void 0;
+exports.mdUnknownKey = exports.onWorkflowCallSecrets = exports.onWorkflowCallOutputs = exports.onWorkflowCallInputs = exports.onWorkflowCall = exports.mdReusableWorkflow = exports.mdReusableWorkflows = exports.mdCustomActionsOutputs = exports.mdCustomActionsInputs = exports.mdCustomActionsRuns = exports.mdCustomAction = exports.mdCustomActions = exports.mdAgenda = exports.mdAnnotationNote = exports.mdAnnotationExample = exports.mdFooter = exports.mdCommonHeader = exports.mdAnchorEnd = exports.mdAnchorStart = exports.mdTableColumns = exports.mdTableRows = exports.mdTablePosition = exports.mdTable = exports.mdLink = exports.mdCell = exports.mdEmphasis = exports.mdBold = exports.mdCodeBlock = exports.mdList = exports.mdComment = exports.mdNote = exports.mdH3 = exports.mdH2 = exports.mdH1 = exports.mdRaw = exports.positionMap = exports.tbSeparator = exports.divider = exports.newLine = void 0;
 const constants_1 = __importDefault(__nccwpck_require__(9349));
 const helpers_1 = __nccwpck_require__(6682);
 exports.newLine = '\n';
@@ -509,9 +586,11 @@ const mdH3 = (text) => `### ${text}${exports.newLine}`;
 exports.mdH3 = mdH3;
 const mdNote = (text) => `> ${text}${exports.newLine}`;
 exports.mdNote = mdNote;
+const mdComment = (text) => `<!-- ${text} -->${exports.newLine}`;
+exports.mdComment = mdComment;
 const mdList = (texts) => texts.map((text) => `* ${text}`).join(exports.newLine) + exports.newLine;
 exports.mdList = mdList;
-const mdCodeBlock = (text) => `\`\`\`${exports.newLine}${text}${exports.newLine}\`\`\`${exports.newLine}`;
+const mdCodeBlock = (text, type = '') => `\`\`\`${type}${exports.newLine}${text}${exports.newLine}\`\`\`${exports.newLine}`;
 exports.mdCodeBlock = mdCodeBlock;
 const mdBold = (text) => `__${text}__`;
 exports.mdBold = mdBold;
@@ -521,7 +600,7 @@ const mdCell = (text) => `| ${(0, helpers_1.toBRFromNewLine)(text)} |`;
 exports.mdCell = mdCell;
 const mdLink = (text, url) => `[${text}](${url})`;
 exports.mdLink = mdLink;
-const mdTable = ({ headers, rows, positions = ['center'], }) => {
+const mdTable = ({ headers, rows, positions = ['center'] }) => {
     const header = (0, exports.mdTableColumns)(headers);
     const position = (0, exports.mdTablePosition)(positions);
     const bodyRows = (0, exports.mdTableRows)(rows);
@@ -533,27 +612,23 @@ const mdTablePosition = (positions) => {
     return (0, exports.mdCell)(tbPositions.join(exports.tbSeparator));
 };
 exports.mdTablePosition = mdTablePosition;
-const mdTableRows = (rows) => {
-    return rows.map((row) => (0, exports.mdTableColumns)(row)).join(exports.newLine);
-};
+const mdTableRows = (rows) => rows.map((row) => (0, exports.mdTableColumns)(row)).join(exports.newLine);
 exports.mdTableRows = mdTableRows;
-const mdTableColumns = (row) => {
-    return (0, exports.mdCell)(row.join(exports.tbSeparator));
-};
+const mdTableColumns = (row) => (0, exports.mdCell)(row.join(exports.tbSeparator));
 exports.mdTableColumns = mdTableColumns;
 // =====================================
 // Reusable workflows markdown generator
 // =====================================
-const mdAnchorStart = () => `[](${constants_1.default.anchorAnnotation}=start)${exports.newLine}`;
+const mdAnchorStart = () => (0, exports.mdComment)(`${constants_1.default.anchorAnnotation}=start`);
 exports.mdAnchorStart = mdAnchorStart;
-const mdAnchorEnd = () => `[](${constants_1.default.anchorAnnotation}=end)${exports.newLine}`;
+const mdAnchorEnd = () => (0, exports.mdComment)(`${constants_1.default.anchorAnnotation}=end`);
 exports.mdAnchorEnd = mdAnchorEnd;
 const mdCommonHeader = () => {
     const anchor = (0, exports.mdAnchorStart)();
     const link = 'https://github.com/gizumon/github-actions-documenter';
-    const note = (0, exports.mdNote)(`🚀 Generated automatically by [github-actions-documenter](${link}) 🚀`) +
-        (0, exports.mdNote)(`⚠️ This was generated automatically. Please do not edit the below manually.${exports.newLine}`);
-    return `${anchor}${exports.divider}${exports.newLine}${note}`;
+    const note = (0, exports.mdComment)(`🚀 Generated automatically by ${link} 🚀`) +
+        (0, exports.mdComment)(`Please do not edit the below manually since they are are generated automatically by this job.`);
+    return `${anchor}${exports.divider}${exports.newLine}${note}${exports.newLine}`;
 };
 exports.mdCommonHeader = mdCommonHeader;
 const mdFooter = () => {
@@ -563,7 +638,7 @@ const mdFooter = () => {
 exports.mdFooter = mdFooter;
 const mdAnnotationExample = (annot) => {
     const title = annot.arg ? (0, exports.mdRaw)(annot.arg) : (0, exports.mdBold)(`Example:${exports.newLine}`);
-    const example = (0, exports.mdCodeBlock)(annot.block.join(exports.newLine));
+    const example = (0, exports.mdCodeBlock)(annot.block.join(exports.newLine), 'yaml');
     return `${title}${exports.newLine}${example}`;
 };
 exports.mdAnnotationExample = mdAnnotationExample;
@@ -581,14 +656,12 @@ const mdAgenda = (yamlMap) => {
     return (0, exports.mdList)(agendaItem);
 };
 exports.mdAgenda = mdAgenda;
-const mdCustomActions = ({ customActionsYaml: yamlMap, annotationMap, }) => Object.keys(yamlMap)
+const mdCustomActions = ({ customActionsYaml: yamlMap, annotationMap }) => Object.keys(yamlMap)
     .map((key, i) => (0, exports.mdCustomAction)(i + 1, yamlMap[key], annotationMap[key]))
     .join(exports.newLine);
 exports.mdCustomActions = mdCustomActions;
 const mdCustomAction = (num = 1, obj, annotationObj = { example: [], note: [] }) => {
-    const examplesDoc = annotationObj.example
-        .map(exports.mdAnnotationExample)
-        .join(exports.newLine);
+    const examplesDoc = annotationObj.example.map(exports.mdAnnotationExample).join(exports.newLine);
     const notesDoc = annotationObj.note.map(exports.mdAnnotationNote).join(exports.newLine);
     const contentDoc = ['name', 'runs', 'description', 'inputs', 'outputs']
         .map((key) => {
@@ -660,14 +733,12 @@ const mdCustomActionsOutputs = (obj) => {
     return `${tableTitleDoc}${exports.newLine}${tableDoc}${exports.newLine}`;
 };
 exports.mdCustomActionsOutputs = mdCustomActionsOutputs;
-const mdReusableWorkflows = ({ workflowCallYamlMap: yamlMap, annotationMap, }) => Object.keys(yamlMap)
+const mdReusableWorkflows = ({ workflowCallYamlMap: yamlMap, annotationMap }) => Object.keys(yamlMap)
     .map((key, i) => (0, exports.mdReusableWorkflow)(i + 1, yamlMap[key], annotationMap[key]))
     .join(exports.newLine);
 exports.mdReusableWorkflows = mdReusableWorkflows;
 const mdReusableWorkflow = (num = 1, obj, annotationObj = { example: [], note: [] }) => {
-    const examplesDoc = annotationObj.example
-        .map(exports.mdAnnotationExample)
-        .join(exports.newLine);
+    const examplesDoc = annotationObj.example.map(exports.mdAnnotationExample).join(exports.newLine);
     const notesDoc = annotationObj.note.map(exports.mdAnnotationNote).join(exports.newLine);
     const contentDoc = ['name', 'on']
         .map((key) => {
@@ -684,7 +755,7 @@ const mdReusableWorkflow = (num = 1, obj, annotationObj = { example: [], note: [
     return `${contentDoc}${notesDoc}`;
 };
 exports.mdReusableWorkflow = mdReusableWorkflow;
-const onWorkflowCall = ({ workflow_call: obj, }) => {
+const onWorkflowCall = ({ workflow_call: obj }) => {
     return ['inputs', 'outputs', 'secrets']
         .map((key) => {
         switch (key) {
@@ -705,14 +776,7 @@ const onWorkflowCallInputs = (obj) => {
     if (!obj)
         return '';
     const headers = ['#', 'Required', 'Type', 'Name', 'Default', 'Description'];
-    const positions = [
-        'left',
-        'center',
-        'center',
-        'left',
-        'left',
-        'left',
-    ];
+    const positions = ['left', 'center', 'center', 'left', 'left', 'left'];
     const rows = Object.keys(obj).map((key, i) => {
         return [
             String(i + 1),
@@ -784,7 +848,7 @@ exports.mdUnknownKey = mdUnknownKey;
 
 /***/ }),
 
-/***/ 2261:
+/***/ 6585:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -811,7 +875,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.issue = exports.issueCommand = void 0;
 const os = __importStar(__nccwpck_require__(2087));
-const utils_1 = __nccwpck_require__(3537);
+const utils_1 = __nccwpck_require__(5425);
 /**
  * Commands
  *
@@ -883,7 +947,7 @@ function escapeProperty(s) {
 
 /***/ }),
 
-/***/ 6914:
+/***/ 7535:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -918,12 +982,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getIDToken = exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
-const command_1 = __nccwpck_require__(2261);
-const file_command_1 = __nccwpck_require__(3460);
-const utils_1 = __nccwpck_require__(3537);
+const command_1 = __nccwpck_require__(6585);
+const file_command_1 = __nccwpck_require__(232);
+const utils_1 = __nccwpck_require__(5425);
 const os = __importStar(__nccwpck_require__(2087));
 const path = __importStar(__nccwpck_require__(5622));
-const oidc_utils_1 = __nccwpck_require__(5302);
+const oidc_utils_1 = __nccwpck_require__(5717);
 /**
  * The code to exit an action
  */
@@ -952,13 +1016,9 @@ function exportVariable(name, val) {
     process.env[name] = convertedVal;
     const filePath = process.env['GITHUB_ENV'] || '';
     if (filePath) {
-        const delimiter = '_GitHubActionsFileCommandDelimeter_';
-        const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`;
-        file_command_1.issueCommand('ENV', commandValue);
+        return file_command_1.issueFileCommand('ENV', file_command_1.prepareKeyValueMessage(name, val));
     }
-    else {
-        command_1.issueCommand('set-env', { name }, convertedVal);
-    }
+    command_1.issueCommand('set-env', { name }, convertedVal);
 }
 exports.exportVariable = exportVariable;
 /**
@@ -976,7 +1036,7 @@ exports.setSecret = setSecret;
 function addPath(inputPath) {
     const filePath = process.env['GITHUB_PATH'] || '';
     if (filePath) {
-        file_command_1.issueCommand('PATH', inputPath);
+        file_command_1.issueFileCommand('PATH', inputPath);
     }
     else {
         command_1.issueCommand('add-path', {}, inputPath);
@@ -1016,7 +1076,10 @@ function getMultilineInput(name, options) {
     const inputs = getInput(name, options)
         .split('\n')
         .filter(x => x !== '');
-    return inputs;
+    if (options && options.trimWhitespace === false) {
+        return inputs;
+    }
+    return inputs.map(input => input.trim());
 }
 exports.getMultilineInput = getMultilineInput;
 /**
@@ -1049,8 +1112,12 @@ exports.getBooleanInput = getBooleanInput;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setOutput(name, value) {
+    const filePath = process.env['GITHUB_OUTPUT'] || '';
+    if (filePath) {
+        return file_command_1.issueFileCommand('OUTPUT', file_command_1.prepareKeyValueMessage(name, value));
+    }
     process.stdout.write(os.EOL);
-    command_1.issueCommand('set-output', { name }, value);
+    command_1.issueCommand('set-output', { name }, utils_1.toCommandValue(value));
 }
 exports.setOutput = setOutput;
 /**
@@ -1179,7 +1246,11 @@ exports.group = group;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function saveState(name, value) {
-    command_1.issueCommand('save-state', { name }, value);
+    const filePath = process.env['GITHUB_STATE'] || '';
+    if (filePath) {
+        return file_command_1.issueFileCommand('STATE', file_command_1.prepareKeyValueMessage(name, value));
+    }
+    command_1.issueCommand('save-state', { name }, utils_1.toCommandValue(value));
 }
 exports.saveState = saveState;
 /**
@@ -1201,17 +1272,17 @@ exports.getIDToken = getIDToken;
 /**
  * Summary exports
  */
-var summary_1 = __nccwpck_require__(6292);
+var summary_1 = __nccwpck_require__(9572);
 Object.defineProperty(exports, "summary", ({ enumerable: true, get: function () { return summary_1.summary; } }));
 /**
  * @deprecated use core.summary
  */
-var summary_2 = __nccwpck_require__(6292);
+var summary_2 = __nccwpck_require__(9572);
 Object.defineProperty(exports, "markdownSummary", ({ enumerable: true, get: function () { return summary_2.markdownSummary; } }));
 /**
  * Path exports
  */
-var path_utils_1 = __nccwpck_require__(818);
+var path_utils_1 = __nccwpck_require__(1622);
 Object.defineProperty(exports, "toPosixPath", ({ enumerable: true, get: function () { return path_utils_1.toPosixPath; } }));
 Object.defineProperty(exports, "toWin32Path", ({ enumerable: true, get: function () { return path_utils_1.toWin32Path; } }));
 Object.defineProperty(exports, "toPlatformPath", ({ enumerable: true, get: function () { return path_utils_1.toPlatformPath; } }));
@@ -1219,7 +1290,7 @@ Object.defineProperty(exports, "toPlatformPath", ({ enumerable: true, get: funct
 
 /***/ }),
 
-/***/ 3460:
+/***/ 232:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1245,13 +1316,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.issueCommand = void 0;
+exports.prepareKeyValueMessage = exports.issueFileCommand = void 0;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const fs = __importStar(__nccwpck_require__(5747));
 const os = __importStar(__nccwpck_require__(2087));
-const utils_1 = __nccwpck_require__(3537);
-function issueCommand(command, message) {
+const uuid_1 = __nccwpck_require__(1425);
+const utils_1 = __nccwpck_require__(5425);
+function issueFileCommand(command, message) {
     const filePath = process.env[`GITHUB_${command}`];
     if (!filePath) {
         throw new Error(`Unable to find environment variable for file command ${command}`);
@@ -1263,12 +1335,27 @@ function issueCommand(command, message) {
         encoding: 'utf8'
     });
 }
-exports.issueCommand = issueCommand;
+exports.issueFileCommand = issueFileCommand;
+function prepareKeyValueMessage(key, value) {
+    const delimiter = `ghadelimiter_${uuid_1.v4()}`;
+    const convertedValue = utils_1.toCommandValue(value);
+    // These should realistically never happen, but just in case someone finds a
+    // way to exploit uuid generation let's not allow keys or values that contain
+    // the delimiter.
+    if (key.includes(delimiter)) {
+        throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
+    }
+    if (convertedValue.includes(delimiter)) {
+        throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
+    }
+    return `${key}<<${delimiter}${os.EOL}${convertedValue}${os.EOL}${delimiter}`;
+}
+exports.prepareKeyValueMessage = prepareKeyValueMessage;
 //# sourceMappingURL=file-command.js.map
 
 /***/ }),
 
-/***/ 5302:
+/***/ 5717:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1284,9 +1371,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OidcClient = void 0;
-const http_client_1 = __nccwpck_require__(7361);
-const auth_1 = __nccwpck_require__(8495);
-const core_1 = __nccwpck_require__(6914);
+const http_client_1 = __nccwpck_require__(1006);
+const auth_1 = __nccwpck_require__(9103);
+const core_1 = __nccwpck_require__(7535);
 class OidcClient {
     static createHttpClient(allowRetry = true, maxRetry = 10) {
         const requestOptions = {
@@ -1352,7 +1439,7 @@ exports.OidcClient = OidcClient;
 
 /***/ }),
 
-/***/ 818:
+/***/ 1622:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1417,7 +1504,7 @@ exports.toPlatformPath = toPlatformPath;
 
 /***/ }),
 
-/***/ 6292:
+/***/ 9572:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1707,7 +1794,7 @@ exports.summary = _summary;
 
 /***/ }),
 
-/***/ 3537:
+/***/ 5425:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1754,7 +1841,7 @@ exports.toCommandProperties = toCommandProperties;
 
 /***/ }),
 
-/***/ 8495:
+/***/ 9103:
 /***/ (function(__unused_webpack_module, exports) {
 
 "use strict";
@@ -1842,7 +1929,7 @@ exports.PersonalAccessTokenCredentialHandler = PersonalAccessTokenCredentialHand
 
 /***/ }),
 
-/***/ 7361:
+/***/ 1006:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1880,7 +1967,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.HttpClient = exports.isHttps = exports.HttpClientResponse = exports.HttpClientError = exports.getProxyUrl = exports.MediaTypes = exports.Headers = exports.HttpCodes = void 0;
 const http = __importStar(__nccwpck_require__(8605));
 const https = __importStar(__nccwpck_require__(7211));
-const pm = __importStar(__nccwpck_require__(2159));
+const pm = __importStar(__nccwpck_require__(2738));
 const tunnel = __importStar(__nccwpck_require__(2565));
 var HttpCodes;
 (function (HttpCodes) {
@@ -2454,7 +2541,7 @@ const lowercaseKeys = (obj) => Object.keys(obj).reduce((c, k) => ((c[k.toLowerCa
 
 /***/ }),
 
-/***/ 2159:
+/***/ 2738:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -2486,6 +2573,10 @@ function checkBypass(reqUrl) {
     if (!reqUrl.hostname) {
         return false;
     }
+    const reqHost = reqUrl.hostname;
+    if (isLoopbackAddress(reqHost)) {
+        return true;
+    }
     const noProxy = process.env['no_proxy'] || process.env['NO_PROXY'] || '';
     if (!noProxy) {
         return false;
@@ -2511,13 +2602,24 @@ function checkBypass(reqUrl) {
         .split(',')
         .map(x => x.trim().toUpperCase())
         .filter(x => x)) {
-        if (upperReqHosts.some(x => x === upperNoProxyItem)) {
+        if (upperNoProxyItem === '*' ||
+            upperReqHosts.some(x => x === upperNoProxyItem ||
+                x.endsWith(`.${upperNoProxyItem}`) ||
+                (upperNoProxyItem.startsWith('.') &&
+                    x.endsWith(`${upperNoProxyItem}`)))) {
             return true;
         }
     }
     return false;
 }
 exports.checkBypass = checkBypass;
+function isLoopbackAddress(host) {
+    const hostLower = host.toLowerCase();
+    return (hostLower === 'localhost' ||
+        hostLower.startsWith('127.') ||
+        hostLower.startsWith('[::1]') ||
+        hostLower.startsWith('[0:0:0:0:0:0:0:1]'));
+}
 //# sourceMappingURL=proxy.js.map
 
 /***/ }),
@@ -6910,11 +7012,665 @@ exports.debug = debug; // for test
 
 /***/ }),
 
+/***/ 1425:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+Object.defineProperty(exports, "v1", ({
+  enumerable: true,
+  get: function () {
+    return _v.default;
+  }
+}));
+Object.defineProperty(exports, "v3", ({
+  enumerable: true,
+  get: function () {
+    return _v2.default;
+  }
+}));
+Object.defineProperty(exports, "v4", ({
+  enumerable: true,
+  get: function () {
+    return _v3.default;
+  }
+}));
+Object.defineProperty(exports, "v5", ({
+  enumerable: true,
+  get: function () {
+    return _v4.default;
+  }
+}));
+Object.defineProperty(exports, "NIL", ({
+  enumerable: true,
+  get: function () {
+    return _nil.default;
+  }
+}));
+Object.defineProperty(exports, "version", ({
+  enumerable: true,
+  get: function () {
+    return _version.default;
+  }
+}));
+Object.defineProperty(exports, "validate", ({
+  enumerable: true,
+  get: function () {
+    return _validate.default;
+  }
+}));
+Object.defineProperty(exports, "stringify", ({
+  enumerable: true,
+  get: function () {
+    return _stringify.default;
+  }
+}));
+Object.defineProperty(exports, "parse", ({
+  enumerable: true,
+  get: function () {
+    return _parse.default;
+  }
+}));
+
+var _v = _interopRequireDefault(__nccwpck_require__(2006));
+
+var _v2 = _interopRequireDefault(__nccwpck_require__(6049));
+
+var _v3 = _interopRequireDefault(__nccwpck_require__(1361));
+
+var _v4 = _interopRequireDefault(__nccwpck_require__(4430));
+
+var _nil = _interopRequireDefault(__nccwpck_require__(9165));
+
+var _version = _interopRequireDefault(__nccwpck_require__(9565));
+
+var _validate = _interopRequireDefault(__nccwpck_require__(7695));
+
+var _stringify = _interopRequireDefault(__nccwpck_require__(9360));
+
+var _parse = _interopRequireDefault(__nccwpck_require__(8150));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/***/ }),
+
+/***/ 3593:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _crypto = _interopRequireDefault(__nccwpck_require__(6417));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function md5(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+
+  return _crypto.default.createHash('md5').update(bytes).digest();
+}
+
+var _default = md5;
+exports.default = _default;
+
+/***/ }),
+
+/***/ 9165:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+var _default = '00000000-0000-0000-0000-000000000000';
+exports.default = _default;
+
+/***/ }),
+
+/***/ 8150:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _validate = _interopRequireDefault(__nccwpck_require__(7695));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function parse(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  let v;
+  const arr = new Uint8Array(16); // Parse ########-....-....-....-............
+
+  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
+  arr[1] = v >>> 16 & 0xff;
+  arr[2] = v >>> 8 & 0xff;
+  arr[3] = v & 0xff; // Parse ........-####-....-....-............
+
+  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
+  arr[5] = v & 0xff; // Parse ........-....-####-....-............
+
+  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
+  arr[7] = v & 0xff; // Parse ........-....-....-####-............
+
+  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
+  arr[9] = v & 0xff; // Parse ........-....-....-....-############
+  // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
+
+  arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
+  arr[11] = v / 0x100000000 & 0xff;
+  arr[12] = v >>> 24 & 0xff;
+  arr[13] = v >>> 16 & 0xff;
+  arr[14] = v >>> 8 & 0xff;
+  arr[15] = v & 0xff;
+  return arr;
+}
+
+var _default = parse;
+exports.default = _default;
+
+/***/ }),
+
+/***/ 2012:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
+exports.default = _default;
+
+/***/ }),
+
+/***/ 6504:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = rng;
+
+var _crypto = _interopRequireDefault(__nccwpck_require__(6417));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const rnds8Pool = new Uint8Array(256); // # of random values to pre-allocate
+
+let poolPtr = rnds8Pool.length;
+
+function rng() {
+  if (poolPtr > rnds8Pool.length - 16) {
+    _crypto.default.randomFillSync(rnds8Pool);
+
+    poolPtr = 0;
+  }
+
+  return rnds8Pool.slice(poolPtr, poolPtr += 16);
+}
+
+/***/ }),
+
+/***/ 8067:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _crypto = _interopRequireDefault(__nccwpck_require__(6417));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function sha1(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+
+  return _crypto.default.createHash('sha1').update(bytes).digest();
+}
+
+var _default = sha1;
+exports.default = _default;
+
+/***/ }),
+
+/***/ 9360:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _validate = _interopRequireDefault(__nccwpck_require__(7695));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Convert array of 16 byte values to UUID string format of the form:
+ * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+ */
+const byteToHex = [];
+
+for (let i = 0; i < 256; ++i) {
+  byteToHex.push((i + 0x100).toString(16).substr(1));
+}
+
+function stringify(arr, offset = 0) {
+  // Note: Be careful editing this code!  It's been tuned for performance
+  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
+  const uuid = (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase(); // Consistency check for valid UUID.  If this throws, it's likely due to one
+  // of the following:
+  // - One or more input array values don't map to a hex octet (leading to
+  // "undefined" in the uuid)
+  // - Invalid input values for the RFC `version` or `variant` fields
+
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Stringified UUID is invalid');
+  }
+
+  return uuid;
+}
+
+var _default = stringify;
+exports.default = _default;
+
+/***/ }),
+
+/***/ 2006:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _rng = _interopRequireDefault(__nccwpck_require__(6504));
+
+var _stringify = _interopRequireDefault(__nccwpck_require__(9360));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// **`v1()` - Generate time-based UUID**
+//
+// Inspired by https://github.com/LiosK/UUID.js
+// and http://docs.python.org/library/uuid.html
+let _nodeId;
+
+let _clockseq; // Previous uuid creation time
+
+
+let _lastMSecs = 0;
+let _lastNSecs = 0; // See https://github.com/uuidjs/uuid for API details
+
+function v1(options, buf, offset) {
+  let i = buf && offset || 0;
+  const b = buf || new Array(16);
+  options = options || {};
+  let node = options.node || _nodeId;
+  let clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq; // node and clockseq need to be initialized to random values if they're not
+  // specified.  We do this lazily to minimize issues related to insufficient
+  // system entropy.  See #189
+
+  if (node == null || clockseq == null) {
+    const seedBytes = options.random || (options.rng || _rng.default)();
+
+    if (node == null) {
+      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+      node = _nodeId = [seedBytes[0] | 0x01, seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
+    }
+
+    if (clockseq == null) {
+      // Per 4.2.2, randomize (14 bit) clockseq
+      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
+    }
+  } // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+
+
+  let msecs = options.msecs !== undefined ? options.msecs : Date.now(); // Per 4.2.1.2, use count of uuid's generated during the current clock
+  // cycle to simulate higher resolution clock
+
+  let nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1; // Time since last uuid creation (in msecs)
+
+  const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000; // Per 4.2.1.2, Bump clockseq on clock regression
+
+  if (dt < 0 && options.clockseq === undefined) {
+    clockseq = clockseq + 1 & 0x3fff;
+  } // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+  // time interval
+
+
+  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+    nsecs = 0;
+  } // Per 4.2.1.2 Throw error if too many uuids are requested
+
+
+  if (nsecs >= 10000) {
+    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
+  }
+
+  _lastMSecs = msecs;
+  _lastNSecs = nsecs;
+  _clockseq = clockseq; // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+
+  msecs += 12219292800000; // `time_low`
+
+  const tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+  b[i++] = tl >>> 24 & 0xff;
+  b[i++] = tl >>> 16 & 0xff;
+  b[i++] = tl >>> 8 & 0xff;
+  b[i++] = tl & 0xff; // `time_mid`
+
+  const tmh = msecs / 0x100000000 * 10000 & 0xfffffff;
+  b[i++] = tmh >>> 8 & 0xff;
+  b[i++] = tmh & 0xff; // `time_high_and_version`
+
+  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+
+  b[i++] = tmh >>> 16 & 0xff; // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+
+  b[i++] = clockseq >>> 8 | 0x80; // `clock_seq_low`
+
+  b[i++] = clockseq & 0xff; // `node`
+
+  for (let n = 0; n < 6; ++n) {
+    b[i + n] = node[n];
+  }
+
+  return buf || (0, _stringify.default)(b);
+}
+
+var _default = v1;
+exports.default = _default;
+
+/***/ }),
+
+/***/ 6049:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _v = _interopRequireDefault(__nccwpck_require__(7063));
+
+var _md = _interopRequireDefault(__nccwpck_require__(3593));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v3 = (0, _v.default)('v3', 0x30, _md.default);
+var _default = v3;
+exports.default = _default;
+
+/***/ }),
+
+/***/ 7063:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = _default;
+exports.URL = exports.DNS = void 0;
+
+var _stringify = _interopRequireDefault(__nccwpck_require__(9360));
+
+var _parse = _interopRequireDefault(__nccwpck_require__(8150));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function stringToBytes(str) {
+  str = unescape(encodeURIComponent(str)); // UTF8 escape
+
+  const bytes = [];
+
+  for (let i = 0; i < str.length; ++i) {
+    bytes.push(str.charCodeAt(i));
+  }
+
+  return bytes;
+}
+
+const DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+exports.DNS = DNS;
+const URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
+exports.URL = URL;
+
+function _default(name, version, hashfunc) {
+  function generateUUID(value, namespace, buf, offset) {
+    if (typeof value === 'string') {
+      value = stringToBytes(value);
+    }
+
+    if (typeof namespace === 'string') {
+      namespace = (0, _parse.default)(namespace);
+    }
+
+    if (namespace.length !== 16) {
+      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
+    } // Compute hash of namespace and value, Per 4.3
+    // Future: Use spread syntax when supported on all platforms, e.g. `bytes =
+    // hashfunc([...namespace, ... value])`
+
+
+    let bytes = new Uint8Array(16 + value.length);
+    bytes.set(namespace);
+    bytes.set(value, namespace.length);
+    bytes = hashfunc(bytes);
+    bytes[6] = bytes[6] & 0x0f | version;
+    bytes[8] = bytes[8] & 0x3f | 0x80;
+
+    if (buf) {
+      offset = offset || 0;
+
+      for (let i = 0; i < 16; ++i) {
+        buf[offset + i] = bytes[i];
+      }
+
+      return buf;
+    }
+
+    return (0, _stringify.default)(bytes);
+  } // Function#name is not settable on some platforms (#270)
+
+
+  try {
+    generateUUID.name = name; // eslint-disable-next-line no-empty
+  } catch (err) {} // For CommonJS default export support
+
+
+  generateUUID.DNS = DNS;
+  generateUUID.URL = URL;
+  return generateUUID;
+}
+
+/***/ }),
+
+/***/ 1361:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _rng = _interopRequireDefault(__nccwpck_require__(6504));
+
+var _stringify = _interopRequireDefault(__nccwpck_require__(9360));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function v4(options, buf, offset) {
+  options = options || {};
+
+  const rnds = options.random || (options.rng || _rng.default)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+
+
+  rnds[6] = rnds[6] & 0x0f | 0x40;
+  rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
+
+  if (buf) {
+    offset = offset || 0;
+
+    for (let i = 0; i < 16; ++i) {
+      buf[offset + i] = rnds[i];
+    }
+
+    return buf;
+  }
+
+  return (0, _stringify.default)(rnds);
+}
+
+var _default = v4;
+exports.default = _default;
+
+/***/ }),
+
+/***/ 4430:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _v = _interopRequireDefault(__nccwpck_require__(7063));
+
+var _sha = _interopRequireDefault(__nccwpck_require__(8067));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v5 = (0, _v.default)('v5', 0x50, _sha.default);
+var _default = v5;
+exports.default = _default;
+
+/***/ }),
+
+/***/ 7695:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _regex = _interopRequireDefault(__nccwpck_require__(2012));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function validate(uuid) {
+  return typeof uuid === 'string' && _regex.default.test(uuid);
+}
+
+var _default = validate;
+exports.default = _default;
+
+/***/ }),
+
+/***/ 9565:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _validate = _interopRequireDefault(__nccwpck_require__(7695));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function version(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  return parseInt(uuid.substr(14, 1), 16);
+}
+
+var _default = version;
+exports.default = _default;
+
+/***/ }),
+
 /***/ 2357:
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("assert");
+
+/***/ }),
+
+/***/ 6417:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("crypto");
 
 /***/ }),
 

@@ -24,7 +24,8 @@ export const mdH3 = (text: string): string => `### ${text}${newLine}`
 export const mdNote = (text: string): string => `> ${text}${newLine}`
 export const mdComment = (text: string): string => `<!-- ${text} -->${newLine}`
 export const mdList = (texts: string[]): string => texts.map((text: string) => `* ${text}`).join(newLine) + newLine
-export const mdCodeBlock = (text: string, type: string = ''): string => `\`\`\`${type}${newLine}${text}${newLine}\`\`\`${newLine}`
+export const mdCodeBlock = (text: string, type = ''): string =>
+  `\`\`\`${type}${newLine}${text}${newLine}\`\`\`${newLine}`
 
 export const mdBold = (text: string): string => `__${text}__`
 export const mdEmphasis = (text: string): string => `\`${text}\``
@@ -38,11 +39,7 @@ interface MdTable {
   positions?: Position[]
 }
 
-export const mdTable = ({
-  headers,
-  rows,
-  positions = ['center'],
-}: MdTable): string => {
+export const mdTable = ({ headers, rows, positions = ['center'] }: MdTable): string => {
   const header = mdTableColumns(headers)
   const position = mdTablePosition(positions)
   const bodyRows = mdTableRows(rows)
@@ -52,8 +49,8 @@ export const mdTablePosition = (positions: Position[]): string => {
   const tbPositions = positions.map((p) => positionMap[p] || positionMap.center)
   return mdCell(tbPositions.join(tbSeparator))
 }
-export const mdTableRows = (rows: string[][]): string => (rows.map((row: string[]) => mdTableColumns(row)).join(newLine))
-export const mdTableColumns = (row: string[]): string => (mdCell(row.join(tbSeparator)))
+export const mdTableRows = (rows: string[][]): string => rows.map((row: string[]) => mdTableColumns(row)).join(newLine)
+export const mdTableColumns = (row: string[]): string => mdCell(row.join(tbSeparator))
 
 // =====================================
 // Reusable workflows markdown generator
@@ -88,23 +85,18 @@ export const mdAnnotationNote = (annot: Annotation): string => {
   return `${title}${newLine}${note}${newLine}`
 }
 
-export const mdAgenda = (
-  yamlMap: ReuseableWorkflowsYamlFileMap | CustomActionsYamlFileMap
-): string => {
+export const mdAgenda = (yamlMap: ReuseableWorkflowsYamlFileMap | CustomActionsYamlFileMap): string => {
   const agendaItem = Object.keys(yamlMap).map((key, i) => {
     const num = i + 1
-    return `${mdLink(
-      `${num}: ${yamlMap[key].name}`,
-      toAnchorLink(`${num}: ${yamlMap[key].name}`)
-    )} ( ${mdLink('📄', key)} )`
+    return `${mdLink(`${num}: ${yamlMap[key].name}`, toAnchorLink(`${num}: ${yamlMap[key].name}`))} ( ${mdLink(
+      '📄',
+      key
+    )} )`
   })
   return mdList(agendaItem)
 }
 
-export const mdCustomActions = ({
-  customActionsYaml: yamlMap,
-  annotationMap,
-}: ReadYamlResult): string =>
+export const mdCustomActions = ({ customActionsYaml: yamlMap, annotationMap }: ReadYamlResult): string =>
   Object.keys(yamlMap)
     .map((key, i) => mdCustomAction(i + 1, yamlMap[key], annotationMap[key]))
     .join(newLine)
@@ -114,9 +106,7 @@ export const mdCustomAction = (
   obj: CustomActionsYaml,
   annotationObj: Annotations = { example: [], note: [] }
 ): string => {
-  const examplesDoc = annotationObj.example
-    .map(mdAnnotationExample)
-    .join(newLine)
+  const examplesDoc = annotationObj.example.map(mdAnnotationExample).join(newLine)
   const notesDoc = annotationObj.note.map(mdAnnotationNote).join(newLine)
   const contentDoc = ['name', 'runs', 'description', 'inputs', 'outputs']
     .map((key) => {
@@ -143,11 +133,10 @@ export const mdCustomAction = (
   return `${contentDoc}${notesDoc}`
 }
 
-export const mdCustomActionsRuns = (runs: CustomActionsYaml['runs']): string => `${mdEmphasis(`using: ${runs.using}`)}${newLine}`
+export const mdCustomActionsRuns = (runs: CustomActionsYaml['runs']): string =>
+  `${mdEmphasis(`using: ${runs.using}`)}${newLine}`
 
-export const mdCustomActionsInputs = (
-  obj: CustomActionsYaml['inputs']
-): string => {
+export const mdCustomActionsInputs = (obj: CustomActionsYaml['inputs']): string => {
   if (!obj) return ''
   const headers = ['#', 'Required', 'Name', 'Default', 'Description']
   const positions = ['left', 'center', 'left', 'left', 'left'] as Position[]
@@ -171,9 +160,7 @@ export const mdCustomActionsInputs = (
   return `${tableTitleDoc}${newLine}${tableDoc}${newLine}`
 }
 
-export const mdCustomActionsOutputs = (
-  obj: CustomActionsYaml['outputs']
-): string => {
+export const mdCustomActionsOutputs = (obj: CustomActionsYaml['outputs']): string => {
   if (!obj) return ''
   const headers = ['#', 'Name', 'Description']
   const positions = ['left', 'left', 'left'] as Position[]
@@ -195,14 +182,9 @@ export const mdCustomActionsOutputs = (
   return `${tableTitleDoc}${newLine}${tableDoc}${newLine}`
 }
 
-export const mdReusableWorkflows = ({
-  workflowCallYamlMap: yamlMap,
-  annotationMap,
-}: ReadYamlResult): string =>
+export const mdReusableWorkflows = ({ workflowCallYamlMap: yamlMap, annotationMap }: ReadYamlResult): string =>
   Object.keys(yamlMap)
-    .map((key, i) =>
-      mdReusableWorkflow(i + 1, yamlMap[key], annotationMap[key])
-    )
+    .map((key, i) => mdReusableWorkflow(i + 1, yamlMap[key], annotationMap[key]))
     .join(newLine)
 
 export const mdReusableWorkflow = (
@@ -210,9 +192,7 @@ export const mdReusableWorkflow = (
   obj: ReuseableWorkflowsYaml,
   annotationObj: Annotations = { example: [], note: [] }
 ): string => {
-  const examplesDoc = annotationObj.example
-    .map(mdAnnotationExample)
-    .join(newLine)
+  const examplesDoc = annotationObj.example.map(mdAnnotationExample).join(newLine)
   const notesDoc = annotationObj.note.map(mdAnnotationNote).join(newLine)
   const contentDoc = ['name', 'on']
     .map((key) => {
@@ -229,9 +209,7 @@ export const mdReusableWorkflow = (
   return `${contentDoc}${notesDoc}`
 }
 
-export const onWorkflowCall = ({
-  workflow_call: obj,
-}: ReuseableWorkflowsYaml['on']): string => {
+export const onWorkflowCall = ({ workflow_call: obj }: ReuseableWorkflowsYaml['on']): string => {
   return ['inputs', 'outputs', 'secrets']
     .map((key) => {
       switch (key) {
@@ -248,19 +226,10 @@ export const onWorkflowCall = ({
     .join(newLine)
 }
 
-export const onWorkflowCallInputs = (
-  obj: ReuseableWorkflowsYaml['on']['workflow_call']['inputs']
-): string => {
+export const onWorkflowCallInputs = (obj: ReuseableWorkflowsYaml['on']['workflow_call']['inputs']): string => {
   if (!obj) return ''
   const headers = ['#', 'Required', 'Type', 'Name', 'Default', 'Description']
-  const positions = [
-    'left',
-    'center',
-    'center',
-    'left',
-    'left',
-    'left',
-  ] as Position[]
+  const positions = ['left', 'center', 'center', 'left', 'left', 'left'] as Position[]
   const rows = Object.keys(obj).map((key, i) => {
     return [
       String(i + 1), // #
@@ -282,9 +251,7 @@ export const onWorkflowCallInputs = (
   return `${tableTitleDoc}${newLine}${tableDoc}${newLine}`
 }
 
-export const onWorkflowCallOutputs = (
-  obj: ReuseableWorkflowsYaml['on']['workflow_call']['outputs']
-): string => {
+export const onWorkflowCallOutputs = (obj: ReuseableWorkflowsYaml['on']['workflow_call']['outputs']): string => {
   if (!obj) return ''
   const headers = ['#', 'Name', 'Description']
   const positions = ['left', 'left', 'left'] as Position[]
@@ -306,9 +273,7 @@ export const onWorkflowCallOutputs = (
   return `${tableTitleDoc}${newLine}${tableDoc}${newLine}`
 }
 
-export const onWorkflowCallSecrets = (
-  obj: ReuseableWorkflowsYaml['on']['workflow_call']['secrets']
-): string => {
+export const onWorkflowCallSecrets = (obj: ReuseableWorkflowsYaml['on']['workflow_call']['secrets']): string => {
   if (!obj) return ''
   const headers = ['#', 'Required', 'Name', 'Description']
   const positions = ['left', 'center', 'left', 'left'] as Position[]

@@ -1,9 +1,4 @@
-import {
-  GitHubActionsYaml,
-  ReuseableWorkflowsYamlFileMap,
-  CustomActionsYamlFileMap,
-  CustomActionsYaml,
-} from './types'
+import { GitHubActionsYaml, ReuseableWorkflowsYamlFileMap, CustomActionsYamlFileMap, CustomActionsYaml } from './types'
 import * as fs from 'fs'
 import constants from './constants'
 import * as path from 'path'
@@ -55,7 +50,9 @@ export const readYamls = (props: InputProps): ReadYamlResult => {
     log('Skip generating Reusable Workflow documents')
   } else {
     const hasTargetFilepaths = props.targetFilepaths.length > 0
-    const rwYmals = hasTargetFilepaths ? readReuseableWorkflowsYamlFromTargetPaths(props) : readReuseableWorkflowsYamlFromDir()
+    const rwYmals = hasTargetFilepaths
+      ? readReuseableWorkflowsYamlFromTargetPaths(props)
+      : readReuseableWorkflowsYamlFromDir()
     workflowCallYamlMap = rwYmals.workflowCallYamlMap
     annotationMap = rwYmals.annotationMap
   }
@@ -111,39 +108,38 @@ const readReuseableWorkflowsYamlFromTargetPaths = ({
   }
 }
 
-const readReuseableWorkflowsYamlFromDir =
-  (): ReadReusableWorkflowsYamlResult => {
-    const workflowCallYamlMap: ReuseableWorkflowsYamlFileMap = {}
-    const annotationMap: GithubActionsAnnotationMap = {}
-    fs.readdirSync(constants.workflowsDir).forEach((fName) => {
-      if (!fName.endsWith('.yml')) return
-      log('Found file: ' + fName)
-      try {
-        const fPath = path.join(constants.workflowsDir, fName)
-        const file = fs.readFileSync(fPath, 'utf-8')
-        const lines = file.split(newLine)
-        const actualLines = lines.filter((l) => !commentRegExp.test(l))
+const readReuseableWorkflowsYamlFromDir = (): ReadReusableWorkflowsYamlResult => {
+  const workflowCallYamlMap: ReuseableWorkflowsYamlFileMap = {}
+  const annotationMap: GithubActionsAnnotationMap = {}
+  fs.readdirSync(constants.workflowsDir).forEach((fName) => {
+    if (!fName.endsWith('.yml')) return
+    log('Found file: ' + fName)
+    try {
+      const fPath = path.join(constants.workflowsDir, fName)
+      const file = fs.readFileSync(fPath, 'utf-8')
+      const lines = file.split(newLine)
+      const actualLines = lines.filter((l) => !commentRegExp.test(l))
 
-        // parse yaml file and filter workflow calls
-        const doc = yaml.load(actualLines.join(newLine)) as GitHubActionsYaml
+      // parse yaml file and filter workflow calls
+      const doc = yaml.load(actualLines.join(newLine)) as GitHubActionsYaml
 
-        if (!isWorkflowCall(doc)) return
+      if (!isWorkflowCall(doc)) return
 
-        log('File is a valid workflow_call yml file: ' + fName)
-        workflowCallYamlMap[fPath] = doc
-        annotationMap[fPath] = parseAnnotationComments(lines)
-        return
-      } catch (e) {
-        log('File is not a valid yml file: ' + fName)
-        log(e instanceof Error ? e.message : e)
-        return
-      }
-    })
-    return {
-      workflowCallYamlMap,
-      annotationMap,
+      log('File is a valid workflow_call yml file: ' + fName)
+      workflowCallYamlMap[fPath] = doc
+      annotationMap[fPath] = parseAnnotationComments(lines)
+      return
+    } catch (e) {
+      log('File is not a valid yml file: ' + fName)
+      log(e instanceof Error ? e.message : e)
+      return
     }
+  })
+  return {
+    workflowCallYamlMap,
+    annotationMap,
   }
+}
 
 const isWorkflowCall = (obj: GitHubActionsYaml): boolean => {
   if (obj.on && obj.on.workflow_call) return true
@@ -209,16 +205,10 @@ const trimComments = (comments: string[]): string[] => {
   return comments.map((comment) => comment?.replace(commentRegExp, ''))
 }
 
-const readCustomActionsYaml = ({
-  targetFilepaths,
-}: InputProps): ReadCustomActionsYamlResult => {
-  const actionYmlsFilepaths = targetFilepaths.filter((fPath) =>
-    actionsYamlRegExp.test(fPath)
-  )
+const readCustomActionsYaml = ({ targetFilepaths }: InputProps): ReadCustomActionsYamlResult => {
+  const actionYmlsFilepaths = targetFilepaths.filter((fPath) => actionsYamlRegExp.test(fPath))
   const hasTargetFilepaths = actionYmlsFilepaths.length > 0
-  return recursiveReadCustomActions(
-    hasTargetFilepaths ? actionYmlsFilepaths : [constants.rootDir]
-  )
+  return recursiveReadCustomActions(hasTargetFilepaths ? actionYmlsFilepaths : [constants.rootDir])
 }
 
 export const recursiveReadCustomActions = (
@@ -279,6 +269,4 @@ export const recursiveReadCustomActions = (
 }
 
 const isCustomActions = (obj: CustomActionsYaml): boolean =>
-  ['name', 'description', 'runs'].every(
-    (key) => obj[key as keyof CustomActionsYaml] !== undefined
-  )
+  ['name', 'description', 'runs'].every((key) => obj[key as keyof CustomActionsYaml] !== undefined)
