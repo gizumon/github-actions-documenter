@@ -144,7 +144,10 @@ const readReuseableWorkflowsYamlFromDir = (): ReadReusableWorkflowsYamlResult =>
   const workflowCallYamlMap: ReuseableWorkflowsYamlFileMap = {}
   const annotationMap: GithubActionsAnnotationMap = {}
   fs.readdirSync(constants.workflowsDir).forEach((fName) => {
-    if (!fName.endsWith('.yml')) return
+    if (!fName.endsWith('.yml') && !fName.endsWith('.yaml')) {
+      log('Target file is not yml file: ' + fName)
+      return
+    }
     log('Found file: ' + fName)
     try {
       const fPath = path.join(constants.workflowsDir, fName)
